@@ -1,0 +1,74 @@
+[
+  {
+    "Id": 1,
+    "LandId": 42,
+    "LandTitle": "Verified 7/12 Farm - Survey No. 1854",
+    "BuyerEmail": "sanika@gmail.com",
+    "BuyerName": "Sanika Dabade",
+    "SellerEmail": "shraddha@earthscan.com",
+    "SellerName": "Shraddha (Seller)",
+    "MessageContent": "i want to buy this land ",
+    "SenderEmail": "sanika@gmail.com",
+    "SentAt": "2026-08-06T19:33:06.1032229Z"
+  },
+  {
+    "Id": 2,
+    "LandId": 42,
+    "LandTitle": "Verified 7/12 Farm - Survey No. 1854",
+    "BuyerEmail": "sanika@gmail.com",
+    "BuyerName": "Sanika Dabade",
+    "SellerEmail": "shraddha@earthscan.com",
+    "SellerName": "Shraddha (Seller)",
+    "MessageContent": "what is price can you reduce it ",
+    "SenderEmail": "sanika@gmail.com",
+    "SentAt": "2026-08-06T19:33:22.1019477Z"
+  },
+  {
+    "Id": 3,
+    "LandId": 42,
+    "LandTitle": "Verified 7/12 Farm - Survey No. 1854",
+    "BuyerEmail": "sanika@gmail.com",
+    "BuyerName": "Sanika Dabade",
+    "SellerEmail": "shraddha@earthscan.com",
+    "SellerName": "Shraddha (Seller)",
+    "MessageContent": "ok",
+    "SenderEmail": "shraddha@earthscan.com",
+    "SentAt": "2026-08-06T19:35:00.5662384Z"
+  },
+  {
+    "Id": 4,
+    "LandId": 42,
+    "LandTitle": "Verified 7/12 Farm - Survey No. 1854",
+    "BuyerEmail": "sanika@earthscan.com",
+    "BuyerName": "Sanika (Buyer)",
+    "SellerEmail": "shraddha@earthscan.com",
+    "SellerName": "Shraddha (Seller)",
+    "MessageContent": "i want to buy this land",
+    "SenderEmail": "sanika@earthscan.com",
+    "SentAt": "2026-08-06T19:45:01.6869644Z"
+  },
+  {
+    "Id": 5,
+    "LandId": 42,
+    "LandTitle": "Verified 7/12 Farm - Survey No. 1854",
+    "BuyerEmail": "sanika@gmail.com",
+    "BuyerName": "Sanika Dabade",
+    "SellerEmail": "shraddha@earthscan.com",
+    "SellerName": "Shraddha (Seller)",
+    "MessageContent": "ok sure ",
+    "SenderEmail": "shraddha@earthscan.com",
+    "SentAt": "2026-08-06T19:46:09.5271224Z"
+  },
+  {
+    "Id": 6,
+    "LandId": 42,
+    "LandTitle": "Verified 7/12 Farm - Survey No. 1854",
+    "BuyerEmail": "sanika@earthscan.com",
+    "BuyerName": "Sanika (Buyer)",
+    "SellerEmail": "shraddha@earthscan.com",
+    "SellerName": "Shraddha (Seller)",
+    "MessageContent": "ok sure",
+    "SenderEmail": "shraddha@earthscan.com",
+    "SentAt": "2026-08-06T19:54:43.2055339Z"
+  }
+]

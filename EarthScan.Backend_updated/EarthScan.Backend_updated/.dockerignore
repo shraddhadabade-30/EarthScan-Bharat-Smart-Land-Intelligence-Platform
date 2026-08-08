@@ -1,0 +1,10 @@
+bin/
+obj/
+publish/
+.vs/
+.git/
+.dockerignore
+Dockerfile
+*.db
+*.sqlite
+appsettings.Development.json

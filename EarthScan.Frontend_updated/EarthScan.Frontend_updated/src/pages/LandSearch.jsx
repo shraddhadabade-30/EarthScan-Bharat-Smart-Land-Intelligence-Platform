@@ -1981,6 +1981,7 @@ export default function LandSearch() {
                                     soilType: selectedLand.soil,
                                     waterDepth: selectedLand.water,
                                     contactNumber: selectedLand.contactNumber || '9969361069',
+                                    sellerName: selectedLand.ownerName || 'Seller',
                                     satbara: satbaraInfo
                                 };
 
@@ -2108,7 +2109,7 @@ export default function LandSearch() {
                                     <Row className="g-3">
                                         <Col sm={6}>
                                             <h6 className="fw-bold mb-2">SELLER / OWNER DETAILS:</h6>
-                                            <strong>Name:</strong> {receiptData.satbara.ownerName}<br />
+                                            <strong>Name:</strong> {receiptData.satbara.ownerName || receiptData.sellerName || 'Seller'}<br />
                                             <strong>Contact:</strong> {receiptData.contactNumber}
                                         </Col>
                                         <Col sm={6} className="border-start border-dark ps-sm-4">

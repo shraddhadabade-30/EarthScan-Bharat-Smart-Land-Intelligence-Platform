@@ -1,0 +1,28 @@
+services:
+  backend:
+    build:
+      context: ./EarthScan.Backend_updated/EarthScan.Backend_updated
+      dockerfile: Dockerfile
+    container_name: earthscan_backend
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Production
+      - ConnectionStrings__DefaultConnection=Server=host.docker.internal;Port=3306;Database=earthscan_db;User=shraddha;Password=cdac;
+    ports:
+      - "5130:5130"
+    volumes:
+      - ./India_Groundwater_Analysis_2024.xlsx:/app/India_Groundwater_Analysis_2024.xlsx
+      - ./wtrqlty_grndwtr_2008.csv:/app/wtrqlty_grndwtr_2008.csv
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    restart: always
+
+  frontend:
+    build:
+      context: ./EarthScan.Frontend_updated/EarthScan.Frontend_updated
+      dockerfile: Dockerfile
+    container_name: earthscan_frontend
+    ports:
+      - "80:80"
+    depends_on:
+      - backend
+    restart: always

@@ -42,10 +42,10 @@ namespace EarthScan.Backend.Controllers
                     .Where(h => h.SearchType == "Borewell Planner" || h.SearchType == "Borewell")
                     .CountAsync();
 
-                // Dynamic values built on top of a realistic baseline (increments in real-time)
-                int totalScans = 2450 + searchCount + landCount;
-                int borewellSims = 8900 + borewellSimsDb;
-                int aiRecs = 15000 + chatCount;
+                // Dynamic values from database with no hardcoded offsets
+                int totalScans = searchCount + landCount;
+                int borewellSims = borewellSimsDb;
+                int aiRecs = chatCount;
 
                 return Ok(new
                 {

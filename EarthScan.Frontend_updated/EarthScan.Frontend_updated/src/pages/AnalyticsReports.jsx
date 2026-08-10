@@ -71,7 +71,7 @@ export default function AnalyticsReports() {
                             <Card className="glass-panel border-0 text-white h-100">
                                 <Card.Body className="p-4 d-flex flex-column align-items-center justify-content-center text-center">
                                     <i className="bi bi-globe-central-south-asia text-success mb-3" style={{ fontSize: '2.5rem' }}></i>
-                                    <h2 className="fw-bold mb-1">{stats.totalScans?.toLocaleString()}+</h2>
+                                    <h2 className="fw-bold mb-1">{stats.totalScans?.toLocaleString()}</h2>
                                     <p className="text-secondary small mb-0">{t('analytics.total_scans')}</p>
                                 </Card.Body>
                             </Card>
@@ -80,7 +80,7 @@ export default function AnalyticsReports() {
                             <Card className="glass-panel border-0 text-white h-100">
                                 <Card.Body className="p-4 d-flex flex-column align-items-center justify-content-center text-center">
                                     <i className="bi bi-droplet-half text-info mb-3" style={{ fontSize: '2.5rem' }}></i>
-                                    <h2 className="fw-bold mb-1">{stats.borewellSims?.toLocaleString()}+</h2>
+                                    <h2 className="fw-bold mb-1">{stats.borewellSims?.toLocaleString()}</h2>
                                     <p className="text-secondary small mb-0">{t('analytics.borewell_sims')}</p>
                                 </Card.Body>
                             </Card>
@@ -89,9 +89,7 @@ export default function AnalyticsReports() {
                             <Card className="glass-panel border-0 text-white h-100">
                                 <Card.Body className="p-4 d-flex flex-column align-items-center justify-content-center text-center">
                                     <i className="bi bi-robot text-warning mb-3" style={{ fontSize: '2.5rem' }}></i>
-                                    <h2 className="fw-bold mb-1">
-                                        {stats.aiRecs >= 1000 ? `${(stats.aiRecs / 1000).toFixed(1)}k+` : stats.aiRecs}
-                                    </h2>
+                                    <h2 className="fw-bold mb-1">{stats.aiRecs?.toLocaleString()}</h2>
                                     <p className="text-secondary small mb-0">{t('analytics.ai_recs')}</p>
                                 </Card.Body>
                             </Card>

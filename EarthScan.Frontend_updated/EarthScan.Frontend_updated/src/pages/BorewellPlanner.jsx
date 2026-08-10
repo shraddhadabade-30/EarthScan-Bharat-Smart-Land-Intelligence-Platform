@@ -367,39 +367,42 @@ export default function BorewellPlanner() {
             let localDepth = baseDepth;
             let localWaterTable = Math.round(12.0 + (stageExtraction * 0.35));
             
-            // Proximity to fault lineament (simulated fracture)
+            // 1. Proximity to fault lineament (simulated fracture) - local geological lineament indicator (+/- 5%)
+            let successAdjusted = baseSuccess;
             if (distMeters < 100) {
-                localSuccess = Math.min(98, Math.round(baseSuccess + (100 - distMeters) * 0.15));
-                localDepth = Math.round(baseDepth * 0.85);
-                localWaterTable = Math.max(4, Math.round(localWaterTable * 0.85));
+                successAdjusted += 5;
+                localDepth = Math.round(baseDepth * 0.9);
+                localWaterTable = Math.max(4, Math.round(localWaterTable * 0.9));
             } else if (distMeters < 350) {
-                localSuccess = Math.max(45, Math.round(baseSuccess - (distMeters - 100) * 0.08));
                 localDepth = baseDepth;
             } else {
-                localSuccess = Math.max(12, Math.round(baseSuccess - 45));
-                localDepth = Math.round(baseDepth * 1.35);
-                localWaterTable = Math.min(150, Math.round(localWaterTable * 1.3));
+                successAdjusted -= 5;
+                localDepth = Math.round(baseDepth * 1.2);
+                localWaterTable = Math.min(150, Math.round(localWaterTable * 1.2));
             }
 
-            // Topography adjustment (Elevation delta vs village center)
+            // 2. Topography adjustment (Elevation delta vs village center) - max +/- 8%
             const elevDelta = clickElev - baselineElevation;
             if (elevDelta > 0) {
-                localDepth = Math.round(localDepth + Math.min(150, elevDelta * 2));
-                localSuccess = Math.max(10, Math.round(localSuccess - Math.min(15, elevDelta * 0.1)));
-                localWaterTable = Math.round(localWaterTable + Math.min(50, elevDelta * 0.5));
+                localDepth = Math.round(localDepth + Math.min(100, elevDelta * 1.5));
+                successAdjusted -= Math.min(8, Math.round(elevDelta * 0.1));
+                localWaterTable = Math.round(localWaterTable + Math.min(30, elevDelta * 0.3));
             } else if (elevDelta < 0) {
                 const absDelta = Math.abs(elevDelta);
-                localDepth = Math.round(Math.max(100, localDepth - Math.min(100, absDelta * 1.5)));
-                localSuccess = Math.min(98, Math.round(localSuccess + Math.min(15, absDelta * 0.15)));
-                localWaterTable = Math.max(4, Math.round(localWaterTable - Math.min(30, absDelta * 0.4)));
+                localDepth = Math.round(Math.max(100, localDepth - Math.min(80, absDelta * 1.2)));
+                successAdjusted += Math.min(8, Math.round(absDelta * 0.12));
+                localWaterTable = Math.max(4, Math.round(localWaterTable - Math.min(20, absDelta * 0.25)));
             }
 
-            // Natural Water proximity adjustment
+            // 3. Natural Water proximity adjustment (OSM live data) - max +10%
             if (minDistanceToWater < 500) {
-                const bonus = Math.round((500 - minDistanceToWater) * 0.02);
-                localSuccess = Math.min(98, localSuccess + bonus);
-                localWaterTable = Math.max(4, Math.round(localWaterTable * 0.9));
+                const waterBonus = Math.round((500 - minDistanceToWater) * 0.02);
+                successAdjusted += waterBonus;
+                localWaterTable = Math.max(4, Math.round(localWaterTable * 0.95));
             }
+
+            // Realistically cap final success rate between 15% and 85% to represent real-world drilling risk
+            localSuccess = Math.max(15, Math.min(85, Math.round(successAdjusted)));
 
             // Calculate cost using progressive basalt algorithm
             const costData = calculateBasaltDrillingCost(localDepth, landSize);

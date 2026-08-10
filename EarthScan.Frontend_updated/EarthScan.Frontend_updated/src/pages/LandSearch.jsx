@@ -775,14 +775,19 @@ export default function LandSearch() {
                 <h2 className="text-white fw-bold mb-0">
                     <i className="bi bi-search text-primary"></i> Smart Land Search
                 </h2>
-                <div className="d-flex gap-2">
-                    <Button variant="outline-warning" className="fw-bold px-4 border-1 rounded-pill shadow" onClick={() => setShowPurchasesModal(true)}>
+                <div className="d-flex gap-2 flex-wrap">
+                    <Button variant="outline-warning" className="fw-bold px-3 border-1 rounded-pill shadow" onClick={() => setShowPurchasesModal(true)}>
                         <i className="bi bi-receipt-cutoff me-2"></i> My Purchases ({purchases.length})
                     </Button>
                     {user && (user.role === 'Farmer' || user.Role === 'Farmer' || user.role === 'Land Buyer' || user.Role === 'Land Buyer') && (
-                        <Button variant="success" className="fw-bold px-4 border-0 rounded-pill shadow animate__animated animate__fadeInRight" onClick={() => setShowSellModal(true)} style={{ background: 'linear-gradient(135deg, #00e676, #00b0ff)' }}>
-                            <i className="bi bi-plus-circle-fill me-2"></i> Sell Your Land
-                        </Button>
+                        <>
+                            <Button variant="outline-success" className="fw-bold px-3 border-1 rounded-pill shadow text-white" onClick={() => setShowMyListingsModal(true)}>
+                                <i className="bi bi-houses-fill me-2 text-success"></i> My Lands
+                            </Button>
+                            <Button variant="success" className="fw-bold px-3 border-0 rounded-pill shadow" onClick={() => setShowSellModal(true)} style={{ background: 'linear-gradient(135deg, #00e676, #00b0ff)' }}>
+                                <i className="bi bi-plus-circle-fill me-2"></i> Sell Your Land
+                            </Button>
+                        </>
                     )}
                 </div>
             </div>

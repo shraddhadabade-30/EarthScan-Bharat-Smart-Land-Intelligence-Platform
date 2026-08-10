@@ -8,6 +8,7 @@ services:
       - ASPNETCORE_ENVIRONMENT=Production
       - ConnectionStrings__DefaultConnection=Server=host.docker.internal;Port=3306;Database=earthscan_db;User=shraddha;Password=cdac;
       - ApiKeys__Gemini=$GEMINI_API_KEY
+      - ApiKeys__DataGov=$DATAGOV_API_KEY
     ports:
       - "5130:5130"
     volumes:

@@ -10,7 +10,10 @@ export default function AnalyticsReports() {
         farmers: 0,
         buyers: 0,
         experts: 0,
-        admins: 0
+        admins: 0,
+        totalScans: 2450,
+        borewellSims: 8900,
+        aiRecs: 15000
     });
     const [loading, setLoading] = useState(true);
     const [errorMsg, setErrorMsg] = useState('');
@@ -22,17 +25,10 @@ export default function AnalyticsReports() {
 
     const fetchData = async () => {
         try {
-            // We use the existing users endpoint to calculate metrics
-            const response = await axios.get(`${API_BASE_URL}/api/admin/users`);
-            const users = response.data;
-            
-            setStats({
-                totalUsers: users.length,
-                farmers: users.filter(u => u.role === 'Farmer').length,
-                buyers: users.filter(u => u.role === 'Land Buyer').length,
-                experts: users.filter(u => u.role === 'Agriculture Expert').length,
-                admins: users.filter(u => u.role === 'Admin').length,
-            });
+            const token = localStorage.getItem('token');
+            const config = token ? { headers: { Authorization: `Bearer ${token}` } } : {};
+            const response = await axios.get(`${API_BASE_URL}/api/analytics/summary`, config);
+            setStats(response.data);
             setLoading(false);
         } catch (error) {
             console.error('Error fetching analytics:', error);
@@ -75,7 +71,7 @@ export default function AnalyticsReports() {
                             <Card className="glass-panel border-0 text-white h-100">
                                 <Card.Body className="p-4 d-flex flex-column align-items-center justify-content-center text-center">
                                     <i className="bi bi-globe-central-south-asia text-success mb-3" style={{ fontSize: '2.5rem' }}></i>
-                                    <h2 className="fw-bold mb-1">2,450+</h2>
+                                    <h2 className="fw-bold mb-1">{stats.totalScans?.toLocaleString()}+</h2>
                                     <p className="text-secondary small mb-0">{t('analytics.total_scans')}</p>
                                 </Card.Body>
                             </Card>
@@ -84,7 +80,7 @@ export default function AnalyticsReports() {
                             <Card className="glass-panel border-0 text-white h-100">
                                 <Card.Body className="p-4 d-flex flex-column align-items-center justify-content-center text-center">
                                     <i className="bi bi-droplet-half text-info mb-3" style={{ fontSize: '2.5rem' }}></i>
-                                    <h2 className="fw-bold mb-1">8,900+</h2>
+                                    <h2 className="fw-bold mb-1">{stats.borewellSims?.toLocaleString()}+</h2>
                                     <p className="text-secondary small mb-0">{t('analytics.borewell_sims')}</p>
                                 </Card.Body>
                             </Card>
@@ -93,7 +89,9 @@ export default function AnalyticsReports() {
                             <Card className="glass-panel border-0 text-white h-100">
                                 <Card.Body className="p-4 d-flex flex-column align-items-center justify-content-center text-center">
                                     <i className="bi bi-robot text-warning mb-3" style={{ fontSize: '2.5rem' }}></i>
-                                    <h2 className="fw-bold mb-1">15k+</h2>
+                                    <h2 className="fw-bold mb-1">
+                                        {stats.aiRecs >= 1000 ? `${(stats.aiRecs / 1000).toFixed(1)}k+` : stats.aiRecs}
+                                    </h2>
                                     <p className="text-secondary small mb-0">{t('analytics.ai_recs')}</p>
                                 </Card.Body>
                             </Card>

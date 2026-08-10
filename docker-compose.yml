@@ -6,7 +6,10 @@ services:
     container_name: earthscan_backend
     environment:
       - ASPNETCORE_ENVIRONMENT=Production
-      - ConnectionStrings__DefaultConnection=Server=host.docker.internal;Port=3306;Database=earthscan_db;User=shraddha;Password=cdac;
+      - ConnectionStrings__DefaultConnection=$DB_CONNECTION_STRING
+      - Jwt__Key=$JWT_KEY
+      - Jwt__Issuer=$JWT_ISSUER
+      - Jwt__Audience=$JWT_AUDIENCE
       - ApiKeys__Gemini=$GEMINI_API_KEY
       - ApiKeys__DataGov=$DATAGOV_API_KEY
     ports:

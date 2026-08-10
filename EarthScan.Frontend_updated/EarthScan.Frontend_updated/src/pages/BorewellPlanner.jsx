@@ -118,6 +118,56 @@ function getHaversineDistance(lat1, lon1, lat2, lon2) {
     return R * c;
 }
 
+// Calculate progressive Deccan Basalt drilling cost slab-by-slab
+function calculateBasaltDrillingCost(depth, landSize) {
+    const depthVal = Number(depth) || 0;
+    const sizeVal = Number(landSize) || 0;
+
+    // Overburden / casing drilling (first 60 feet on average)
+    const casingDepth = Math.min(60, depthVal);
+    const casingDrillingCost = casingDepth * 120; // ₹120/foot
+    const casingPipeCost = casingDepth * 300;     // ₹300/foot for PVC casing
+
+    // Hard rock progressive drilling cost slabs
+    let rockDrillingCost = 0;
+    const remainingDepth = Math.max(0, depthVal - casingDepth);
+
+    for (let feet = 1; feet <= remainingDepth; feet++) {
+        const absoluteDepth = casingDepth + feet;
+        if (absoluteDepth <= 100) {
+            rockDrillingCost += 90;
+        } else if (absoluteDepth <= 200) {
+            rockDrillingCost += 105;
+        } else if (absoluteDepth <= 300) {
+            rockDrillingCost += 125;
+        } else if (absoluteDepth <= 400) {
+            rockDrillingCost += 155;
+        } else if (absoluteDepth <= 500) {
+            rockDrillingCost += 190;
+        } else {
+            rockDrillingCost += 230;
+        }
+    }
+
+    // Fixed fees (setup, capping, flushing)
+    const fixedFees = 12000;
+    
+    // Land-size site preparation fee
+    const sitePrepFee = Math.round(sizeVal * 1500);
+
+    const total = casingDrillingCost + casingPipeCost + rockDrillingCost + fixedFees + sitePrepFee;
+
+    return {
+        casingDrilling: casingDrillingCost,
+        casingPipe: casingPipeCost,
+        rockDrilling: rockDrillingCost,
+        fixedFees: fixedFees,
+        sitePrep: sitePrepFee,
+        total: total
+    };
+}
+
+
 // Fetch community water points (wells, water bodies, rivers) near coordinate from OSM Overpass API
 async function fetchNearbyWaterPoints(lat, lng) {
     // Fetch nodes of type water_well, drinking_water, water, and rivers within a 4km radius.
@@ -277,6 +327,13 @@ export default function BorewellPlanner() {
             }
         })();
 
+        // Settle distance-decay to nearest natural water body
+        const naturalWaterPoints = waterPoints.filter(p => p.type === 'water' || p.type === 'waterway' || p.type === 'river');
+        let minDistanceToWater = 9999;
+        if (naturalWaterPoints.length > 0) {
+            minDistanceToWater = Math.min(...naturalWaterPoints.map(p => getHaversineDistance(drillingCoords.lat, drillingCoords.lng, p.lat, p.lng) * 1000));
+        }
+
         // Dynamic polyline segment A to B based on village center
         const ax = mapCoords.lat - 0.015;
         const ay = mapCoords.lng - 0.01;
@@ -284,62 +341,98 @@ export default function BorewellPlanner() {
         const by = mapCoords.lng + 0.01;
         
         const distMeters = getDistanceToSegment(drillingCoords.lat, drillingCoords.lng, ax, ay, bx, by);
-        
-        const baseSuccess = parseFloat(results.profile.successProbability) || 75;
-        const baseDepth = results.profile.averageBorewellDepthValue || 250;
-        const stageExtraction = parseFloat(results.profile.ExtractionStagePercentage) || 60;
-        
-        let localSuccess = baseSuccess;
-        let localDepth = baseDepth;
-        let localWaterTable = Math.round(12.0 + (stageExtraction * 0.35));
-        
-        if (distMeters < 100) {
-            // Highly feasible zone: near aquifer fracture line
-            localSuccess = Math.min(98, Math.round(baseSuccess + (100 - distMeters) * 0.15));
-            localDepth = Math.round(baseDepth * 0.85);
-            localWaterTable = Math.max(4, Math.round(localWaterTable * 0.85));
-        } else if (distMeters < 350) {
-            // Moderate zone
-            localSuccess = Math.max(45, Math.round(baseSuccess - (distMeters - 100) * 0.08));
-            localDepth = baseDepth;
-        } else {
-            // Low feasibility zone: far from fracture line
-            localSuccess = Math.max(12, Math.round(baseSuccess - 45));
-            localDepth = Math.round(baseDepth * 1.35);
-            localWaterTable = Math.min(150, Math.round(localWaterTable * 1.3));
-        }
-        
-        const baseCost = 25130;
-        const drillingCost = localDepth * 380;
-        const totalCostVal = Math.round(baseCost + drillingCost + (landSize * 1500));
-        
-        const surfaceP = Math.max(10, Math.round(localSuccess * 0.4));
-        const fracturedP = Math.max(20, Math.round(localSuccess * 0.7));
-        const deepP = Math.round(localSuccess);
 
-        const newCost = `₹${totalCostVal.toLocaleString('en-IN')}`;
-        const newDepthStr = `${localDepth} feet`;
-        const newWTStr = `${localWaterTable} meters`;
+        // Fetch elevation dynamically at the clicked spot
+        (async () => {
+            let baselineElevation = parseFloat(results.profile.elevation) || 500;
+            let clickElev = baselineElevation;
+            try {
+                const elevUrl = `https://api.open-meteo.com/v1/elevation?latitude=${drillingCoords.lat}&longitude=${drillingCoords.lng}`;
+                const elevRes = await fetch(elevUrl);
+                if (elevRes.ok) {
+                    const elevData = await elevRes.json();
+                    if (elevData.elevation && elevData.elevation.length > 0) {
+                        clickElev = elevData.elevation[0];
+                    }
+                }
+            } catch (e) {
+                console.warn("Elevation fetch failed for drilling point", e);
+            }
 
-        // Avoid infinite loop by only updating if values actually changed
-        if (results.successRate !== localSuccess || results.cost !== newCost || results.fractureDistance !== distMeters || results.profile.averageBorewellDepth !== newDepthStr) {
-            setResults(prev => ({
-                ...prev,
-                successRate: localSuccess,
-                cost: newCost,
-                profile: {
-                    ...prev.profile,
-                    averageBorewellDepth: newDepthStr,
-                    waterTableLevel: newWTStr
-                },
-                depths: [
-                    { type: 'surface', range: '50 - 100', p: surfaceP, variant: surfaceP > 40 ? 'success' : (surfaceP > 20 ? 'warning' : 'danger') },
-                    { type: 'fractured', range: '100 - 200', p: fracturedP, variant: fracturedP > 60 ? 'success' : (fracturedP > 35 ? 'warning' : 'danger') },
-                    { type: 'recommended', range: newDepthStr, p: deepP, variant: deepP > 70 ? 'success' : (deepP > 50 ? 'warning' : 'danger') }
-                ],
-                fractureDistance: distMeters
-            }));
-        }
+            const baseSuccess = parseFloat(results.profile.successProbability) || 75;
+            const baseDepth = results.profile.averageBorewellDepthValue || 250;
+            const stageExtraction = parseFloat(results.profile.ExtractionStagePercentage) || 60;
+            
+            let localSuccess = baseSuccess;
+            let localDepth = baseDepth;
+            let localWaterTable = Math.round(12.0 + (stageExtraction * 0.35));
+            
+            // Proximity to fault lineament (simulated fracture)
+            if (distMeters < 100) {
+                localSuccess = Math.min(98, Math.round(baseSuccess + (100 - distMeters) * 0.15));
+                localDepth = Math.round(baseDepth * 0.85);
+                localWaterTable = Math.max(4, Math.round(localWaterTable * 0.85));
+            } else if (distMeters < 350) {
+                localSuccess = Math.max(45, Math.round(baseSuccess - (distMeters - 100) * 0.08));
+                localDepth = baseDepth;
+            } else {
+                localSuccess = Math.max(12, Math.round(baseSuccess - 45));
+                localDepth = Math.round(baseDepth * 1.35);
+                localWaterTable = Math.min(150, Math.round(localWaterTable * 1.3));
+            }
+
+            // Topography adjustment (Elevation delta vs village center)
+            const elevDelta = clickElev - baselineElevation;
+            if (elevDelta > 0) {
+                localDepth = Math.round(localDepth + Math.min(150, elevDelta * 2));
+                localSuccess = Math.max(10, Math.round(localSuccess - Math.min(15, elevDelta * 0.1)));
+                localWaterTable = Math.round(localWaterTable + Math.min(50, elevDelta * 0.5));
+            } else if (elevDelta < 0) {
+                const absDelta = Math.abs(elevDelta);
+                localDepth = Math.round(Math.max(100, localDepth - Math.min(100, absDelta * 1.5)));
+                localSuccess = Math.min(98, Math.round(localSuccess + Math.min(15, absDelta * 0.15)));
+                localWaterTable = Math.max(4, Math.round(localWaterTable - Math.min(30, absDelta * 0.4)));
+            }
+
+            // Natural Water proximity adjustment
+            if (minDistanceToWater < 500) {
+                const bonus = Math.round((500 - minDistanceToWater) * 0.02);
+                localSuccess = Math.min(98, localSuccess + bonus);
+                localWaterTable = Math.max(4, Math.round(localWaterTable * 0.9));
+            }
+
+            // Calculate cost using progressive basalt algorithm
+            const costData = calculateBasaltDrillingCost(localDepth, landSize);
+            const formattedCost = `₹${costData.total.toLocaleString('en-IN')}`;
+            const newDepthStr = `${localDepth} feet`;
+            const newWTStr = `${localWaterTable} meters`;
+            
+            const surfaceP = Math.max(10, Math.round(localSuccess * 0.4));
+            const fracturedP = Math.max(20, Math.round(localSuccess * 0.7));
+            const deepP = Math.round(localSuccess);
+
+            if (results.successRate !== localSuccess || results.cost !== formattedCost || results.fractureDistance !== distMeters || results.profile.averageBorewellDepth !== newDepthStr) {
+                setResults(prev => ({
+                    ...prev,
+                    successRate: localSuccess,
+                    cost: formattedCost,
+                    costBreakdown: costData,
+                    profile: {
+                        ...prev.profile,
+                        averageBorewellDepth: newDepthStr,
+                        averageBorewellDepthValue: localDepth,
+                        waterTableLevel: newWTStr,
+                        elevation: `${Math.round(clickElev)} meters`
+                    },
+                    depths: [
+                        { type: 'surface', range: '50 - 100', p: surfaceP, variant: surfaceP > 40 ? 'success' : (surfaceP > 20 ? 'warning' : 'danger') },
+                        { type: 'fractured', range: '100 - 200', p: fracturedP, variant: fracturedP > 60 ? 'success' : (fracturedP > 35 ? 'warning' : 'danger') },
+                        { type: 'recommended', range: newDepthStr, p: deepP, variant: deepP > 70 ? 'success' : (deepP > 50 ? 'warning' : 'danger') }
+                    ],
+                    fractureDistance: distMeters
+                }));
+            }
+        })();
     }, [drillingCoords, mapCoords]);
 
     // Handle pin code change lookup
@@ -689,7 +782,7 @@ export default function BorewellPlanner() {
             const villageQuery = subArea ? `${subArea}, ${selectedVillage}` : selectedVillage;
             let url = `${API_BASE_URL}/api/groundwater/borewell?state=${encodeURIComponent(stateName)}&district=${encodeURIComponent(resolvedDistrict)}&village=${encodeURIComponent(villageQuery)}&userId=${userId}`;
             if (lat !== null && lng !== null) {
-                url += `&latitude=${lat}&longitude=${lng}`;
+            url += `&latitude=${lat}&longitude=${lng}`;
             }
 
             const response = await fetch(url);
@@ -699,9 +792,8 @@ export default function BorewellPlanner() {
                 const successRateVal = parseFloat(profile.successProbability) || 65;
                 const depthVal = profile.averageBorewellDepthValue || parseInt(profile.averageBorewellDepth) || 250;
 
-                const baseCost = 25130;
-                const drillingCost = depthVal * 380;
-                const totalCostVal = Math.round(baseCost + drillingCost + (landSize * 1500));
+                const costData = calculateBasaltDrillingCost(depthVal, landSize);
+                const formattedCost = `₹${costData.total.toLocaleString('en-IN')}`;
 
                 const surfaceP = Math.max(10, Math.round(successRateVal * 0.4));
                 const fracturedP = Math.max(20, Math.round(successRateVal * 0.7));
@@ -710,12 +802,13 @@ export default function BorewellPlanner() {
                 setResults({
                     yield: profile.groundwaterAvailability === 'High' || profile.groundwaterAvailability === 'Very High' ? '2.0 - 3.0' : (profile.groundwaterAvailability === 'Moderate' ? '1.5 - 2.0' : '0.5 - 1.0'),
                     successRate: successRateVal,
-                    cost: `₹${totalCostVal.toLocaleString('en-IN')}`,
+                    cost: formattedCost,
+                    costBreakdown: costData,
                     profile: profile,
                     depths: [
                         { type: 'surface', range: '50 - 100', p: surfaceP, variant: surfaceP > 40 ? 'success' : (surfaceP > 20 ? 'warning' : 'danger') },
                         { type: 'fractured', range: '100 - 200', p: fracturedP, variant: fracturedP > 60 ? 'success' : (fracturedP > 35 ? 'warning' : 'danger') },
-                        { type: 'recommended', range: profile.averageBorewellDepth, p: deepP, variant: deepP > 70 ? 'success' : (deepP > 50 ? 'warning' : 'danger') }
+                        { type: 'recommended', range: profile.averageBorewellDepth, p: deepP, variant: deepP > 70 ? 'success' : (depthVal > 50 ? 'warning' : 'danger') }
                     ]
                 });
             } else {
@@ -955,6 +1048,126 @@ export default function BorewellPlanner() {
                                         )}
                                     </Card.Body>
                                 </Card>
+
+                                {/* Visual Geological Stratigraphy */}
+                                <Card className="glass-panel border-0 text-white">
+                                    <Card.Body className="p-4">
+                                        <h5 className="fw-bold mb-3 d-flex align-items-center gap-2 text-warning">
+                                            <i className="bi bi-layers-fill"></i> Subterranean Geological Stratigraphy (भूगर्भातील थरांचा नकाशा)
+                                        </h5>
+                                        <p className="text-secondary small mb-3">
+                                            Estimated soil and rock layer profile at this drilling point. Basalt rock formations are typical for Maharashtra's Deccan Traps.
+                                        </p>
+                                        {(() => {
+                                            const depthVal = results.profile.averageBorewellDepthValue || 250;
+                                            return (
+                                                <div className="d-flex flex-column border border-secondary rounded overflow-hidden" style={{ minHeight: '250px' }}>
+                                                    {/* Top soil */}
+                                                    <div className="d-flex align-items-center justify-content-between px-3" style={{ background: '#5c4033', height: '40px', borderBottom: '1px solid rgba(255,255,255,0.1)' }}>
+                                                        <span className="small fw-bold">Top Soil / Overburden (मातीचा थर): 0 - 15 ft</span>
+                                                        <span className="badge bg-dark bg-opacity-50 text-light small">Loose Soil</span>
+                                                    </div>
+                                                    {/* Weathered basalt */}
+                                                    <div className="d-flex align-items-center justify-content-between px-3" style={{ background: '#708090', height: '50px', borderBottom: '1px solid rgba(255,255,255,0.1)' }}>
+                                                        <span className="small fw-bold text-light">Weathered / Soft Basalt (मुरुम खडक): 15 - 60 ft</span>
+                                                        <span className="badge bg-dark bg-opacity-50 text-light small">Casing Pipe Required</span>
+                                                    </div>
+                                                    {/* Massive basalt */}
+                                                    <div className="d-flex align-items-center justify-content-between px-3" style={{ background: '#4f5d73', height: '70px', borderBottom: '1px solid rgba(255,255,255,0.1)' }}>
+                                                        <span className="small fw-bold text-light">Massive Hard Basalt (कठिण काळा पाषाण): 60 - 220 ft</span>
+                                                        <span className="badge bg-dark bg-opacity-50 text-light small">Solid Hard Rock</span>
+                                                    </div>
+                                                    {/* Fractured basalt (Aquifer) */}
+                                                    <div className="d-flex align-items-center px-3 justify-content-between" style={{ background: '#2c3e50', height: '60px', backgroundImage: 'repeating-linear-gradient(45deg, transparent, transparent 10px, rgba(41, 121, 255, 0.15) 10px, rgba(41, 121, 255, 0.15) 20px)', borderBottom: '1px solid rgba(255,255,255,0.1)' }}>
+                                                        <span className="small fw-bold text-info"><i className="bi bi-droplet-fill"></i> Jointed / Fractured Basalt (पाझर असलेला खडक - Aquifer): 220 - {depthVal} ft</span>
+                                                        <span className="badge bg-primary px-3 py-1.5 fs-7 fw-bold">Water Struck Zone</span>
+                                                    </div>
+                                                    {/* Dry bedrock */}
+                                                    <div className="d-flex align-items-center px-3 justify-content-between" style={{ background: '#1c2833', height: '40px' }}>
+                                                        <span className="small fw-bold text-muted">Hard Granitic Bedrock (खालचा कडक पाया): {depthVal}+ ft</span>
+                                                        <span className="badge bg-dark bg-opacity-50 text-muted small">Dry Bedrock</span>
+                                                    </div>
+                                                </div>
+                                            );
+                                        })()}
+                                    </Card.Body>
+                                </Card>
+
+                                {/* Progressive Slab Cost Breakdown */}
+                                {results.costBreakdown && (
+                                    <Card className="glass-panel border-0 text-white">
+                                        <Card.Body className="p-4">
+                                            <h5 className="fw-bold mb-3 d-flex align-items-center gap-2 text-info">
+                                                <i className="bi bi-calculator"></i> Itemized Drilling Cost Estimate (दरांचा तपशील)
+                                            </h5>
+                                            <p className="text-secondary small mb-3">
+                                                Estimated based on progressive slab rates for hard basalt rock drilling in Maharashtra.
+                                            </p>
+                                            <div className="table-responsive">
+                                                <table className="table table-dark table-striped table-bordered border-secondary mb-0 small">
+                                                    <thead>
+                                                        <tr>
+                                                            <th>Item Description / तपशील</th>
+                                                            <th>Calculation / दर</th>
+                                                            <th className="text-end">Cost / एकूण</th>
+                                                        </tr>
+                                                    </thead>
+                                                    <tbody>
+                                                        <tr>
+                                                            <td>Casing Drilling / माती खोदकाम (60 ft)</td>
+                                                            <td>60 ft @ ₹120/ft</td>
+                                                            <td className="text-end">₹{results.costBreakdown.casingDrilling.toLocaleString('en-IN')}</td>
+                                                        </tr>
+                                                        <tr>
+                                                            <td>PVC Casing Pipe / पीव्हीसी पाईप (60 ft)</td>
+                                                            <td>60 ft @ ₹300/ft</td>
+                                                            <td className="text-end">₹{results.costBreakdown.casingPipe.toLocaleString('en-IN')}</td>
+                                                        </tr>
+                                                        <tr>
+                                                            <td>Hard Basalt Drilling / खडक खोदकाम (Slabs)</td>
+                                                            <td>Progressive rate slabs (₹90 - ₹230/ft)</td>
+                                                            <td className="text-end">₹{results.costBreakdown.rockDrilling.toLocaleString('en-IN')}</td>
+                                                        </tr>
+                                                        <tr>
+                                                            <td>Flushing, Capping & Setup / बोअर सफाई</td>
+                                                            <td>Fixed fee</td>
+                                                            <td className="text-end">₹{results.costBreakdown.fixedFees.toLocaleString('en-IN')}</td>
+                                                        </tr>
+                                                        <tr>
+                                                            <td>Site Preparation / जागा तयारी (Land Area)</td>
+                                                            <td>Scaled on {landSize} Acres</td>
+                                                            <td className="text-end">₹{results.costBreakdown.sitePrep.toLocaleString('en-IN')}</td>
+                                                        </tr>
+                                                        <tr className="fw-bold text-info" style={{ borderTop: '2px solid rgba(255,255,255,0.2)' }}>
+                                                            <td>TOTAL ESTIMATED COST / एकूण अंदाजे खर्च</td>
+                                                            <td>All Slabs Included</td>
+                                                            <td className="text-end">₹{results.costBreakdown.total.toLocaleString('en-IN')}</td>
+                                                        </tr>
+                                                    </tbody>
+                                                </table>
+                                            </div>
+                                        </Card.Body>
+                                    </Card>
+                                )}
+
+                                {/* Data Provenance and Calculation Disclaimers */}
+                                <Card className="glass-panel border-0 text-white">
+                                    <Card.Body className="p-4">
+                                        <h6 className="fw-bold mb-3 d-flex align-items-center gap-2 text-warning">
+                                            <i className="bi bi-shield-exclamation text-warning"></i> Data Provenance & Calculation Disclaimers
+                                        </h6>
+                                        <div className="small text-secondary d-flex flex-column gap-2.5">
+                                            <div className="border-start border-success ps-2.5">
+                                                <strong className="text-success d-block"><i className="bi bi-check-circle-fill"></i> Real Government & Climatological Data (Assurance: High)</strong>
+                                                State and district groundwater levels and baseline categories are sourced directly from the <strong>Central Ground Water Board (CGWB)</strong> via the national Data.gov.in API. Live rainfall and point elevation are fetched dynamically using the <strong>Open-Meteo API</strong>. Nearby waterways, wells, and rivers are retrieved live from <strong>OpenStreetMap (OSM)</strong> databases.
+                                            </div>
+                                            <div className="border-start border-warning ps-2.5">
+                                                <strong className="text-warning d-block"><i className="bi bi-exclamation-triangle-fill"></i> Simulated / Derived Estimations (Assurance: Mathematical)</strong>
+                                                Underground fracture alignment (blue dotted line) is a <strong>mathematical lineament simulation</strong> seeded by village coordinates and is not an active geophysical survey. Rock layers (basalt vs soil) and the drilling cost breakdown are <strong>derived engineering models</strong> based on typical geological properties of the Deccan Traps and industry-standard Maharashtra slab rates. They do not constitute contractor quotes.
+                                            </div>
+                                        </div>
+                                    </Card.Body>
+                                </Card>
                             </div>
                         ) : (
                             <div className="h-100 d-flex flex-column justify-content-center align-items-center text-secondary border border-secondary rounded glass-panel p-5 text-center" style={{ minHeight: '300px', borderColor: 'rgba(255,255,255,0.1) !important' }}>
@@ -1030,7 +1243,12 @@ export default function BorewellPlanner() {
                                                 color="#2979ff" 
                                                 dashArray="8, 12" 
                                                 weight={4}
-                                            />
+                                            >
+                                                <Popup>
+                                                    <strong>🌀 Simulated Aquifer Fracture Line</strong><br />
+                                                    (Deterministic model based on village center coordinates)
+                                                </Popup>
+                                            </Polyline>
 
                                             <Marker position={[mapCoords.lat, mapCoords.lng]} icon={mainSiteIcon}>
                                                 <Popup>

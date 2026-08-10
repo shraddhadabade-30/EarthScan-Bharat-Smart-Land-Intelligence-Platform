@@ -3,6 +3,4 @@ dist/
 build/
 .git/
 .vs/
-Dockerfile
 .dockerignore
-nginx.conf

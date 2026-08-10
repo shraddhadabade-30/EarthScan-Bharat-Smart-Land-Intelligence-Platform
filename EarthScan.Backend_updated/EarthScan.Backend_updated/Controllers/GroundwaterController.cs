@@ -166,9 +166,12 @@ namespace EarthScan.Backend.Controllers
                     string qualityResourceId = _configuration["ApiResources:GroundwaterQuality"] ?? "8001abaf-aab7-4454-adec-8cae992e8d2a";
                     string mappingResourceId = _configuration["ApiResources:GroundwaterMapping"] ?? "c967fe8f-69c4-42df-8afc-8a2c98057437";
 
-                    string urlLevel = $"https://api.data.gov.in/resource/{levelResourceId}?api-key={apiKey}&format=json&filters[state]={Uri.EscapeDataString(state)}&filters[district]={Uri.EscapeDataString(district)}";
-                    string urlQuality = $"https://api.data.gov.in/resource/{qualityResourceId}?api-key={apiKey}&format=json&filters[state]={Uri.EscapeDataString(state)}&filters[district]={Uri.EscapeDataString(district)}";
-                    string urlMapping = $"https://api.data.gov.in/resource/{mappingResourceId}?api-key={apiKey}&format=json&filters[state]={Uri.EscapeDataString(state)}&filters[district]={Uri.EscapeDataString(district)}";
+                    string queryState = state.Trim().ToUpper();
+                    string queryDistrict = district.Trim().ToUpper();
+
+                    string urlLevel = $"https://api.data.gov.in/resource/{levelResourceId}?api-key={apiKey}&format=json&filters[state]={Uri.EscapeDataString(queryState)}&filters[district]={Uri.EscapeDataString(queryDistrict)}";
+                    string urlQuality = $"https://api.data.gov.in/resource/{qualityResourceId}?api-key={apiKey}&format=json&filters[state]={Uri.EscapeDataString(queryState)}&filters[district]={Uri.EscapeDataString(queryDistrict)}";
+                    string urlMapping = $"https://api.data.gov.in/resource/{mappingResourceId}?api-key={apiKey}&format=json&filters[state]={Uri.EscapeDataString(queryState)}&filters[district]={Uri.EscapeDataString(queryDistrict)}";
 
                     var tLevel = _httpClient.GetAsync(urlLevel);
                     var tQuality = _httpClient.GetAsync(urlQuality);

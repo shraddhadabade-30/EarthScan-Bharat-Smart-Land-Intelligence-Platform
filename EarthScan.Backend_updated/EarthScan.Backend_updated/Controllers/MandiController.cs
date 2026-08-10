@@ -45,7 +45,8 @@ namespace EarthScan.Backend.Controllers
                     string url = $"https://api.data.gov.in/resource/{resourceId}?api-key={apiKey}&format=json&limit=50";
                     if (!string.IsNullOrWhiteSpace(crop))
                     {
-                        url += $"&filters[commodity]={Uri.EscapeDataString(crop)}";
+                        string capitalizedCrop = char.ToUpper(crop.Trim()[0]) + crop.Trim().Substring(1).ToLower();
+                        url += $"&filters[commodity]={Uri.EscapeDataString(capitalizedCrop)}";
                     }
 
                     var response = await _httpClient.GetAsync(url);

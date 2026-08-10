@@ -12,6 +12,10 @@ services:
       - Jwt__Audience=$JWT_AUDIENCE
       - ApiKeys__Gemini=$GEMINI_API_KEY
       - ApiKeys__DataGov=$DATAGOV_API_KEY
+      - ApiResources__GroundwaterLevel=$GW_LEVEL_RESOURCE_ID
+      - ApiResources__GroundwaterQuality=$GW_QUALITY_RESOURCE_ID
+      - ApiResources__GroundwaterMapping=$GW_MAPPING_RESOURCE_ID
+      - ApiResources__MandiAgmarknet=$MANDI_RESOURCE_ID
     ports:
       - "5130:5130"
     volumes:

@@ -99,6 +99,31 @@ namespace EarthScan.Backend.Controllers
 
             return Ok(new { message = "Comment added successfully", comment });
         }
+
+        // DELETE: api/forum/posts/5
+        [HttpDelete("posts/{id}")]
+        public async Task<IActionResult> DeletePost(int id)
+        {
+            var post = await _context.ForumPosts.Include(p => p.Comments).FirstOrDefaultAsync(p => p.Id == id);
+            if (post == null)
+            {
+                return NotFound(new { message = "Post not found" });
+            }
+
+            var userName = User.FindFirstValue(ClaimTypes.Name) ?? "Unknown";
+            var userRole = User.FindFirstValue(ClaimTypes.Role) ?? "User";
+
+            // Allow the author or an Admin to delete the post
+            if (post.AuthorName != userName && userRole != "Admin")
+            {
+                return Forbid();
+            }
+
+            _context.ForumPosts.Remove(post);
+            await _context.SaveChangesAsync();
+
+            return Ok(new { message = "Post deleted successfully" });
+        }
     }
 
     public class CreatePostRequest

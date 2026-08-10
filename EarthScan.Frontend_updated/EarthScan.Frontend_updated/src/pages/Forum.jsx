@@ -1,8 +1,9 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useContext } from 'react';
 import { Container, Row, Col, Card, Button, Form, Badge, Modal, Spinner } from 'react-bootstrap';
 import axios from 'axios';
 import { useTranslation } from 'react-i18next';
 import { API_BASE_URL } from '../config';
+import { AuthContext } from '../context/AuthContext';
 
 export default function Forum() {
     const [posts, setPosts] = useState([]);
@@ -19,6 +20,26 @@ export default function Forum() {
     const [activeCommentPostId, setActiveCommentPostId] = useState(null);
     const [submittingComment, setSubmittingComment] = useState(false);
     const { t } = useTranslation();
+    const { user } = useContext(AuthContext);
+
+    const loggedInUserName = user?.name || user?.Name || '';
+    const loggedInUserRole = user?.role || user?.Role || '';
+
+    const handleDeletePost = async (postId) => {
+        if (!window.confirm("Are you sure you want to delete this post?")) return;
+        try {
+            const token = localStorage.getItem('token');
+            await axios.delete(`${API_BASE_URL}/api/forum/posts/${postId}`, {
+                headers: {
+                    'Authorization': `Bearer ${token}`
+                }
+            });
+            setPosts(posts.filter(post => post.id !== postId));
+        } catch (error) {
+            console.error('Error deleting post:', error);
+            alert('Failed to delete post: ' + (error.response?.data?.message || error.message));
+        }
+    };
 
     useEffect(() => {
         fetchPosts();
@@ -173,7 +194,21 @@ export default function Forum() {
                                                 </small>
                                             </div>
                                         </div>
-                                        <Badge bg={getCategoryBadgeColor(post.category)}>{post.category}</Badge>
+                                        <div className="d-flex align-items-center gap-2">
+                                            <Badge bg={getCategoryBadgeColor(post.category)}>{post.category}</Badge>
+                                            {(post.authorName === loggedInUserName || loggedInUserRole === 'Admin') && (
+                                                <Button 
+                                                    variant="outline-danger" 
+                                                    size="sm" 
+                                                    className="p-1 py-0 border-0 shadow-none text-danger" 
+                                                    style={{ background: 'transparent' }}
+                                                    onClick={() => handleDeletePost(post.id)}
+                                                    title="Delete Post"
+                                                >
+                                                    <i className="bi bi-trash-fill"></i>
+                                                </Button>
+                                            )}
+                                        </div>
                                     </div>
                                     
                                     <h5 className="fw-bold mb-2">{post.title}</h5>

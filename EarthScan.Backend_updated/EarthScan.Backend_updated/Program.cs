@@ -61,21 +61,22 @@ using (var scope = app.Services.CreateScope())
         var context = services.GetRequiredService<EarthScanDbContext>();
         context.Database.Migrate();
 
-        // Update any Lands in DB, assigning them distinct realistic crop image URLs
+        // Update any Lands in DB, assigning them distinct realistic agricultural land plot URLs
         var lands = context.Lands.ToList();
         if (lands.Any())
         {
             var demoImages = new[]
             {
-                "https://images.unsplash.com/photo-1595974482597-4b8da8879bc5?auto=format&fit=crop&w=800&q=80", // Sugarcane
-                "https://images.unsplash.com/photo-1532499016263-f2c3e89df9cd?auto=format&fit=crop&w=800&q=80", // Grapes
-                "https://images.unsplash.com/photo-1553137141-79172256f7ef?auto=format&fit=crop&w=800&q=80", // Orchard
-                "https://images.unsplash.com/photo-1594900010629-9e8c3132e49c?auto=format&fit=crop&w=800&q=80", // Cotton
-                "https://images.unsplash.com/photo-1541344999736-83eadb4b48f1?auto=format&fit=crop&w=800&q=80", // Pomegranate
-                "https://images.unsplash.com/photo-1574323347407-f5e1ad6d020b?auto=format&fit=crop&w=800&q=80", // Wheat
-                "https://images.unsplash.com/photo-1500937386664-56d159062255?auto=format&fit=crop&w=800&q=80", // Farm Landscape
-                "https://images.unsplash.com/photo-1536256263959-770b48d82b0a?auto=format&fit=crop&w=800&q=80", // Rice Field
-                "https://images.unsplash.com/photo-1502082553048-f009c37129b9?auto=format&fit=crop&w=800&q=80"  // Coconut Farm
+                "https://images.unsplash.com/photo-1500382017468-9049fed747ef?auto=format&fit=crop&w=800&q=80", // Green empty agricultural land
+                "https://images.unsplash.com/photo-1500937386664-56d159062255?auto=format&fit=crop&w=800&q=80", // Plowed empty soil farm field
+                "https://images.unsplash.com/photo-1464822759023-fed622ff2c3b?auto=format&fit=crop&w=800&q=80", // Green crop field landscape
+                "https://images.unsplash.com/photo-1523348837708-15d4a09cfac2?auto=format&fit=crop&w=800&q=80", // Plowed soil lines in farm plot
+                "https://images.unsplash.com/photo-1592997571659-0b21ff64313b?auto=format&fit=crop&w=800&q=80", // Green grass empty field plot
+                "https://images.unsplash.com/photo-1500530855697-b586d89ba3ee?auto=format&fit=crop&w=800&q=80", // Countryside agriculture farm field
+                "https://images.unsplash.com/photo-1530595467537-0b5996c41f2d?auto=format&fit=crop&w=800&q=80", // Dry soil cultivation plot
+                "https://images.unsplash.com/photo-1605000797499-95a51c5269ae?auto=format&fit=crop&w=800&q=80", // Soil field under sky
+                "https://images.unsplash.com/photo-1504280390367-361c6d9f38f4?auto=format&fit=crop&w=800&q=80", // Green land field plot
+                "https://images.unsplash.com/photo-1615811361523-6bd03d7748e7?auto=format&fit=crop&w=800&q=80"  // Cultivated soil beds
             };
             int index = 0;
             foreach (var land in lands)

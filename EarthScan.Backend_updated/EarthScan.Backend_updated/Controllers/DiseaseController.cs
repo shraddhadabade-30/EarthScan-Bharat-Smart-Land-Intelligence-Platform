@@ -43,36 +43,40 @@ namespace EarthScan.Backend.Controllers
                 }
                 string base64Image = Convert.ToBase64String(fileBytes);
 
-                string targetLangName = "English";
                 string cropNameDesc = "crop name in English";
                 string diseaseNameDesc = "disease name in English, 'None' if healthy";
                 string causeDesc = "cause of disease in English, 'None' if healthy";
                 string treatmentDesc = "organic/biological treatment in English, 'None' if healthy";
                 string fertilizerDesc = "fertilizer suggestion in English, 'None' if healthy";
                 string preventiveDesc = "preventive measures in English, 'None' if healthy";
+                string langInstruction = @"You MUST write the response (DetectedCrop, DiseaseName, Cause, Treatment, FertilizerSuggestion, PreventiveMeasures) strictly in English language using standard English script/alphabets.";
 
                 if (!string.IsNullOrEmpty(activeLang))
                 {
                     var cleanLang = activeLang.Trim().ToLower();
                     if (cleanLang.StartsWith("mr"))
                     {
-                        targetLangName = "Marathi";
                         cropNameDesc = "crop name strictly in Marathi language (मराठीत)";
                         diseaseNameDesc = "disease name strictly in Marathi language (मराठीत), write 'काही नाही' if healthy";
                         causeDesc = "cause of disease strictly in Marathi language (मराठीत), write 'काही नाही' if healthy";
                         treatmentDesc = "organic/biological treatment strictly in Marathi (मराठीत), write 'कोणताही उपचार आवश्यक नाही' if healthy";
                         fertilizerDesc = "fertilizer suggestion strictly in Marathi (मराठीत), write 'कोणतीही खत शिफारस नाही' if healthy";
                         preventiveDesc = "preventive measures strictly in Marathi (मराठीत), write 'नियमित देखरेख ठेवा' if healthy";
+                        langInstruction = @"You MUST write every single word of the response (DetectedCrop, DiseaseName, Cause, Treatment, FertilizerSuggestion, PreventiveMeasures) strictly in Marathi language using Devanagari script.
+DO NOT use any English words, English letters, or English sentences.
+For chemical names, transliterate them into Devanagari (e.g. write 'Mancozeb' as 'मॅन्कोझेब', 'NPK' as 'एनपीके', etc.).";
                     }
                     else if (cleanLang.StartsWith("hi"))
                     {
-                        targetLangName = "Hindi";
                         cropNameDesc = "crop name strictly in Hindi language (हिंदी में)";
                         diseaseNameDesc = "disease name strictly in Hindi language (हिंदी में), write 'कोई नहीं' if healthy";
                         causeDesc = "cause of disease strictly in Hindi language (हिंदी में), write 'कोई नहीं' if healthy";
                         treatmentDesc = "organic/biological treatment strictly in Hindi (हिंदी में), write 'किसी उपचार की आवश्यकता नहीं है' if healthy";
                         fertilizerDesc = "fertilizer suggestion strictly in Hindi (हिंदी में), write 'कोई खाद अनुशंसा नहीं' if healthy";
                         preventiveDesc = "preventive measures strictly in Hindi (हिंदी में), write 'नियमित निगरानी रखें' if healthy";
+                        langInstruction = @"You MUST write every single word of the response (DetectedCrop, DiseaseName, Cause, Treatment, FertilizerSuggestion, PreventiveMeasures) strictly in Hindi language using Devanagari script.
+DO NOT use any English words, English letters, or English sentences.
+For chemical names, transliterate them into Devanagari (e.g. write 'Mancozeb' as 'मॅन्कोझेब', 'NPK' as 'एनपीके', etc.).";
                     }
                 }
 
@@ -82,9 +86,7 @@ First, identify the actual crop in the image. If the user's claim ('{cropCategor
 Then, identify any plant disease or deficiency.
 
 CRITICAL LANGUAGE INSTRUCTION:
-You MUST write every single word of the response (DetectedCrop, DiseaseName, Cause, Treatment, FertilizerSuggestion, PreventiveMeasures) strictly in {targetLangName} language using Devanagari script.
-DO NOT use any English words, English letters, or English sentences.
-For chemical names, transliterate them into Devanagari (e.g. write 'Mancozeb' as 'मॅन्कोझेब', 'NPK' as 'एनपीके', etc.).
+{langInstruction}
 
 Return strictly a valid JSON object matching this schema exactly without markdown formatting:
 {{

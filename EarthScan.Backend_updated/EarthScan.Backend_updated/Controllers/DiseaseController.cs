@@ -48,12 +48,12 @@ namespace EarthScan.Backend.Controllers
                     if (cleanLang.StartsWith("mr"))
                     {
                         targetLang = "Marathi";
-                        langInstruction = "IMPORTANT: You MUST write all textual descriptions, crop names, disease names, causes, treatments, and preventions strictly in Marathi language (मराठीत लिहा). Do NOT use English words.";
+                        langInstruction = "CRITICAL: You MUST write every single word of the response (DetectedCrop, DiseaseName, Cause, Treatment, FertilizerSuggestion, PreventiveMeasures) strictly in Marathi language using Devanagari script. Transliterate English names of chemicals (like Mancozeb as मॅन्कोझेब, Chlorothalonil as क्लोरोथॅलोनिल, Copper Oxychloride as कॉपर ऑक्सीक्लोराइड, etc.) into Devanagari script. Absolutely no English alphabets or English sentences are allowed in the text fields.";
                     }
                     else if (cleanLang.StartsWith("hi"))
                     {
                         targetLang = "Hindi";
-                        langInstruction = "IMPORTANT: You MUST write all textual descriptions, crop names, disease names, causes, treatments, and preventions strictly in Hindi language (हिंदी में लिखें).";
+                        langInstruction = "CRITICAL: You MUST write every single word of the response (DetectedCrop, DiseaseName, Cause, Treatment, FertilizerSuggestion, PreventiveMeasures) strictly in Hindi language using Devanagari script. Transliterate English names of chemicals into Devanagari script. Absolutely no English alphabets or English sentences are allowed in the text fields.";
                     }
                 }
 

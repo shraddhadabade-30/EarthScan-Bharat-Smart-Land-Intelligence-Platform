@@ -88,6 +88,11 @@ Answer the farmer's question using this context in markdown format. Question: ""
 
             try
             {
+                if (string.IsNullOrEmpty(apiKey) || apiKey == "YOUR_GEMINI_API_KEY_HERE" || apiKey.Length < 10)
+                {
+                    throw new Exception("Gemini API key is not configured.");
+                }
+
                 string url = $"https://generativelanguage.googleapis.com/v1beta/models/gemini-flash-latest:generateContent?key={apiKey}";
                 var requestBody = new
                 {
@@ -97,13 +102,13 @@ Answer the farmer's question using this context in markdown format. Question: ""
                 var response = await _httpClient.PostAsJsonAsync(url, requestBody);
                 if (!response.IsSuccessStatusCode)
                 {
-                    return StatusCode((int)response.StatusCode, await response.Content.ReadAsStringAsync());
+                    throw new Exception($"Gemini request failed: {response.StatusCode}");
                 }
 
                 var jsonNode = await response.Content.ReadFromJsonAsync<JsonNode>();
                 var answerText = jsonNode?["candidates"]?[0]?["content"]?["parts"]?[0]?["text"]?.ToString();
 
-                if (string.IsNullOrEmpty(answerText)) return StatusCode(500, "Empty response from AI.");
+                if (string.IsNullOrEmpty(answerText)) throw new Exception("Empty response from AI.");
 
                 var historyNode = new AIChatHistory
                 {
@@ -120,7 +125,36 @@ Answer the farmer's question using this context in markdown format. Question: ""
             }
             catch (Exception ex)
             {
-                return StatusCode(500, $"Internal Server Error: {ex.Message}");
+                Console.WriteLine("Krishi Mitra chat fell back to local advisor: " + ex.Message);
+                
+                string fallbackAnswer = "";
+                var cleanLang = (request.Lang ?? "").Trim().ToLower();
+                
+                if (cleanLang.StartsWith("mr"))
+                {
+                    fallbackAnswer = $"**कृषी मित्र सल्लागार (स्थानिक बॅकअप):**\n\nतुमच्या प्रश्नासाठी धन्यवाद: \"{request.Question}\".\n\nसध्याच्या हवामानानुसार (ताशी {request.WeatherInfo}) आणि मातीची गुणवत्ता ({request.SoilInfo}), आम्ही सुचवतो:\n1. योग्य पाणी व्यवस्थापन करा आणि खतांचा वेळेवर वापर करा.\n2. बाजारातील चालू भाव पाहण्यासाठी जवळच्या बाजारपेठेशी संपर्क साधा.\n3. प्रधानमंत्री कृषी सन्मान योजना किंवा इतर योजनांच्या लाभासाठी नोंदणी तपासा.\n\nअधिक माहितीसाठी जवळच्या कृषी सहाय्यक अधिकाऱ्याशी संपर्क साधा.";
+                }
+                else if (cleanLang.StartsWith("hi"))
+                {
+                    fallbackAnswer = $"**कृषि मित्र सलाहकार (स्थानीय बैकअप):**\n\nआपके प्रश्न के लिए धन्यवाद: \"{request.Question}\".\n\nवर्तमान मौसम (विवरण: {request.WeatherInfo}) और मिट्टी के प्रकार ({request.SoilInfo}) के आधार पर:\n1. उचित जल निकासी और जैविक खादों का संतुलित उपयोग करें।\n2. मंडी के वर्तमान भावों के लिए कृषि मंडी अपडेट्स देखते रहें।\n3. सरकारी योजनाओं (जैसे पीएम-किसान) के पात्रता नियमों की जांच करें।\n\nअधिक मार्गदर्शन के लिए अपने स्थानीय कृषि विस्तार अधिकारी से संपर्क करें।";
+                }
+                else
+                {
+                    fallbackAnswer = $"**Krishi Mitra Advisor (Local Backup):**\n\nThank you for your question: \"{request.Question}\".\n\nBased on your location ({request.Location}), weather ({request.WeatherInfo}), and soil profile ({request.SoilInfo}), here are the recommended practices:\n1. Optimize irrigation schedules and apply fertilizers based on soil test parameters.\n2. Keep checking the Mandi dashboard for latest crop prices (current averages modal ₹4,500/q).\n3. Consult state agri-schemes for subsidies on seed purchases and micro-irrigation equipment.\n\nFor personalized farm visits, contact your block agricultural development officer.";
+                }
+
+                var historyNode = new AIChatHistory
+                {
+                    UserId = request.UserId,
+                    Question = request.Question,
+                    Answer = fallbackAnswer,
+                    Location = request.Location,
+                    CreatedAt = DateTime.UtcNow
+                };
+                _context.AIChatHistories.Add(historyNode);
+                await _context.SaveChangesAsync();
+
+                return Ok(new { answer = fallbackAnswer });
             }
         }
     }

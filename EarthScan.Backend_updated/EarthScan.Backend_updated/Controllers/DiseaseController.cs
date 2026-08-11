@@ -44,61 +44,65 @@ namespace EarthScan.Backend.Controllers
                 }
                 string base64Image = Convert.ToBase64String(fileBytes);
 
-                string cropNameDesc = "crop name in English";
-                string diseaseNameDesc = "disease name in English, 'None' if healthy";
-                string causeDesc = "cause of disease in English, 'None' if healthy";
-                string treatmentDesc = "organic/biological treatment in English, 'None' if healthy";
-                string fertilizerDesc = "fertilizer suggestion in English, 'None' if healthy";
-                string preventiveDesc = "preventive measures in English, 'None' if healthy";
-                string langInstruction = @"You MUST write the response (DetectedCrop, DiseaseName, Cause, Treatment, FertilizerSuggestion, PreventiveMeasures) strictly in English language using standard English script/alphabets.";
+                string prompt = "";
+                var cleanLang = (activeLang ?? "en").Trim().ToLower();
 
-                if (!string.IsNullOrEmpty(activeLang))
+                if (cleanLang.StartsWith("mr"))
                 {
-                    var cleanLang = activeLang.Trim().ToLower();
-                    if (cleanLang.StartsWith("mr"))
-                    {
-                        cropNameDesc = "crop name strictly in Marathi language (मराठीत)";
-                        diseaseNameDesc = "disease name strictly in Marathi language (मराठीत), write 'काही नाही' if healthy";
-                        causeDesc = "cause of disease strictly in Marathi language (मराठीत), write 'काही नाही' if healthy";
-                        treatmentDesc = "organic/biological treatment strictly in Marathi (मराठीत), write 'कोणताही उपचार आवश्यक नाही' if healthy";
-                        fertilizerDesc = "fertilizer suggestion strictly in Marathi (मराठीत), write 'कोणतीही खत शिफारस नाही' if healthy";
-                        preventiveDesc = "preventive measures strictly in Marathi (मराठीत), write 'नियमित देखरेख ठेवा' if healthy";
-                        langInstruction = @"You MUST write every single word of the response (DetectedCrop, DiseaseName, Cause, Treatment, FertilizerSuggestion, PreventiveMeasures) strictly in Marathi language using Devanagari script.
-DO NOT use any English words, English letters, or English sentences.
-For chemical names, transliterate them into Devanagari (e.g. write 'Mancozeb' as 'मॅन्कोझेब', 'NPK' as 'एनपीके', etc.).";
-                    }
-                    else if (cleanLang.StartsWith("hi"))
-                    {
-                        cropNameDesc = "crop name strictly in Hindi language (हिंदी में)";
-                        diseaseNameDesc = "disease name strictly in Hindi language (हिंदी में), write 'कोई नहीं' if healthy";
-                        causeDesc = "cause of disease strictly in Hindi language (हिंदी में), write 'कोई नहीं' if healthy";
-                        treatmentDesc = "organic/biological treatment strictly in Hindi (हिंदी में), write 'किसी उपचार की आवश्यकता नहीं है' if healthy";
-                        fertilizerDesc = "fertilizer suggestion strictly in Hindi (हिंदी में), write 'कोई खाद अनुशंसा नहीं' if healthy";
-                        preventiveDesc = "preventive measures strictly in Hindi (हिंदी में), write 'नियमित निगरानी रखें' if healthy";
-                        langInstruction = @"You MUST write every single word of the response (DetectedCrop, DiseaseName, Cause, Treatment, FertilizerSuggestion, PreventiveMeasures) strictly in Hindi language using Devanagari script.
-DO NOT use any English words, English letters, or English sentences.
-For chemical names, transliterate them into Devanagari (e.g. write 'Mancozeb' as 'मॅन्कोझेब', 'NPK' as 'एनपीके', etc.).";
-                    }
-                }
+                    prompt = $@"तुम्ही वनस्पती रोग निदान तज्ञ आहात. या पिकाच्या पानाचे विश्लेषण करा.
+वापरकर्त्याचा दावा आहे की हे पीक '{cropCategory}' आहे.
 
-                string prompt = $@"Analyze this crop leaf image.
+अत्यंत महत्वाचे: तुम्हाला संपूर्ण प्रतिसाद (DetectedCrop, DiseaseName, Cause, Treatment, FertilizerSuggestion, PreventiveMeasures) केवळ आणि केवळ मराठी भाषेत देवनागरी लिपी वापरून लिहायचा आहे. इंग्रजी शब्द किंवा इंग्रजी अक्षरे वापरू नका.
+रासायनिक किंवा औषधांची नावे देवनागरीत लिहा (उदा. 'Streptocycline' ऐवजी 'स्ट्रेप्टोसायक्लिन').
+
+खालील दिलेल्या JSON रचनेनुसार प्रतिसाद द्या (कोणतेही इतर मजकूर किंवा मार्कडाउन लिहू नका):
+{{
+  ""DetectedCrop"": ""पिकाचे नाव मराठीत"",
+  ""IsMismatch"": false,
+  ""DiseaseName"": ""रोगाचे नाव मराठीत, निरोगी असल्यास 'काही नाही'"",
+  ""Cause"": ""रोगाचे संभाव्य कारण मराठीत, निरोगी असल्यास 'काही नाही'"",
+  ""Treatment"": ""सेंद्रिय किंवा जैविक उपचार मराठीत"",
+  ""FertilizerSuggestion"": ""खत शिफारस किंवा रासायनिक उपचार मराठीत"",
+  ""PreventiveMeasures"": ""प्रतिबंधात्मक उपाय मराठीत""
+}}";
+                }
+                else if (cleanLang.StartsWith("hi"))
+                {
+                    prompt = $@"आप एक पादप रोग विशेषज्ञ हैं। इस फसल की पत्ती का विश्लेषण करें।
+उपयोगकर्ता का दावा है कि यह फसल '{cropCategory}' है।
+
+अत्यंत महत्वपूर्ण: आपको पूरा उत्तर (DetectedCrop, DiseaseName, Cause, Treatment, FertilizerSuggestion, PreventiveMeasures) केवल और केवल हिंदी भाषा में देवनागरी लिपि का उपयोग करके लिखना है। अंग्रेजी शब्दों या अंग्रेजी अक्षरों का उपयोग न करें।
+रासायनिक या दवाओं के नाम देवनागरी में लिखें (जैसे 'Streptocycline' के बजाय 'स्ट्रेप्टोसाइक्लिन')।
+
+नीचे दिए गए JSON प्रारूप में उत्तर दें (कोई अन्य टेक्स्ट या मार्कडाउन न लिखें):
+{{
+  ""DetectedCrop"": ""फसल का नाम हिंदी में"",
+  ""IsMismatch"": false,
+  ""DiseaseName"": ""रोग का नाम हिंदी में, स्वस्थ होने पर 'कोई नहीं'"",
+  ""Cause"": ""रोग का संभावित कारण हिंदी में, स्वस्थ होने पर 'कोई नहीं'"",
+  ""Treatment"": ""जैविक उपचार हिंदी में"",
+  ""FertilizerSuggestion"": ""खाद सुझाव या रासायनिक उपचार हिंदी में"",
+  ""PreventiveMeasures"": ""निवारक उपाय हिंदी में""
+}}";
+                }
+                else
+                {
+                    prompt = $@"You are a plant disease diagnosis expert. Analyze this crop leaf image.
 The user claims this is a '{cropCategory}' crop. 
 First, identify the actual crop in the image. If the user's claim ('{cropCategory}') does not match the actual crop in the image (and the claim is not just 'General'), set 'IsMismatch' to true.
 Then, identify any plant disease or deficiency.
 
-CRITICAL LANGUAGE INSTRUCTION:
-{langInstruction}
-
 Return strictly a valid JSON object matching this schema exactly without markdown formatting:
 {{
-  ""DetectedCrop"": ""{cropNameDesc}"",
-  ""IsMismatch"": boolean,
-  ""DiseaseName"": ""{diseaseNameDesc}"",
-  ""Cause"": ""{causeDesc}"",
-  ""Treatment"": ""{treatmentDesc}"",
-  ""FertilizerSuggestion"": ""{fertilizerDesc}"",
-  ""PreventiveMeasures"": ""{preventiveDesc}""
+  ""DetectedCrop"": ""crop name in English"",
+  ""IsMismatch"": false,
+  ""DiseaseName"": ""disease name in English, 'None' if healthy"",
+  ""Cause"": ""cause of disease in English, 'None' if healthy"",
+  ""Treatment"": ""organic/biological treatment in English, 'None' if healthy"",
+  ""FertilizerSuggestion"": ""fertilizer suggestion in English, 'None' if healthy"",
+  ""PreventiveMeasures"": ""preventive measures in English, 'None' if healthy""
 }}";
+                }
 
                 var extracted = await _geminiService.GenerateContentAsync(prompt, file.ContentType, base64Image);
 

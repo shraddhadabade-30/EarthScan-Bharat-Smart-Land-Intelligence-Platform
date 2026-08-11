@@ -336,7 +336,7 @@ export default function DashboardHome() {
 
     // Initial load: fetch weather and groundwater
     useEffect(() => {
-        setSoilType(t('dashboard.soil_type') === 'Soil Type' ? 'Black Soil' : t('dashboard.soil_type'));
+        setSoilType(t('dashboard.soil_black_soil') || 'Black Soil');
         
         let initialLat = 18.5204;
         let initialLng = 73.8567;
@@ -368,7 +368,7 @@ export default function DashboardHome() {
         
         loadWeather(initialLat, initialLng);
         loadGroundwater(stateVal).finally(() => setLoading(false));
-    }, [user]);
+    }, [user, t]);
 
     async function loadWeather(lat, lng) {
         setWeatherLoading(true);
@@ -677,14 +677,14 @@ export default function DashboardHome() {
                                         </div>
                                         <div className="d-flex justify-content-between mb-3 border-bottom border-secondary pb-2" style={{ borderColor: 'rgba(255,255,255,0.05) !important' }}>
                                             <span className="text-light">{t('dashboard.soil_type')}:</span>
-                                            <span className="fw-bold">Black Soil</span>
+                                            <span className="fw-bold">{soilType}</span>
                                         </div>
                                         <div className="d-flex justify-content-between mb-3 border-bottom border-secondary pb-2" style={{ borderColor: 'rgba(255,255,255,0.05) !important' }}>
-                                            <span className="text-light">GW Recharge:</span>
+                                            <span className="text-light">{t('dashboard.gw_recharge') || 'GW Recharge'}:</span>
                                             <span className="fw-bold text-success">{gwStats ? `${gwStats.annualRechargeBCM.toFixed(2)} BCM` : 'Loading...'}</span>
                                         </div>
                                         <div className="d-flex justify-content-between mb-3 border-bottom border-secondary pb-2" style={{ borderColor: 'rgba(255,255,255,0.05) !important' }}>
-                                            <span className="text-light">Extractable Resource:</span>
+                                            <span className="text-light">{t('dashboard.extractable_resource') || 'Extractable Resource'}:</span>
                                             <span className="fw-bold text-info">{gwStats ? `${gwStats.extractableResourceBCM.toFixed(2)} BCM` : 'Loading...'}</span>
                                         </div>
                                     </Col>
@@ -693,9 +693,9 @@ export default function DashboardHome() {
                                             <span className="text-light">{t('dashboard.groundwater')}:</span>
                                             <span className={`fw-bold ${gwStats ? (gwStats.extractionStagePercentage > 100 ? 'text-danger' : (gwStats.extractionStagePercentage > 70 ? 'text-warning' : 'text-success')) : 'text-secondary'}`}>
                                                 {gwStats ? (
-                                                    gwStats.extractionStagePercentage > 100 ? 'Over-exploited' :
-                                                    gwStats.extractionStagePercentage > 90 ? 'Critical' :
-                                                    gwStats.extractionStagePercentage > 70 ? 'Semi-critical' : 'Safe'
+                                                    gwStats.extractionStagePercentage > 100 ? t('dashboard.over_exploited') :
+                                                    gwStats.extractionStagePercentage > 90 ? t('dashboard.critical_status') :
+                                                    gwStats.extractionStagePercentage > 70 ? t('dashboard.semi_critical') : t('dashboard.safe')
                                                 ) : 'Loading...'}
                                                 {gwStats && ` (${gwStats.extractionStagePercentage.toFixed(1)}%)`}
                                             </span>
@@ -704,18 +704,18 @@ export default function DashboardHome() {
                                             <span className="text-light">{t('dashboard.borewell_depth')}:</span>
                                             <span className="fw-bold">
                                                 {gwStats ? (
-                                                    gwStats.extractionStagePercentage > 100 ? '250 - 450 feet' :
-                                                    gwStats.extractionStagePercentage > 70 ? '150 - 250 feet' : '100 - 150 feet'
+                                                    gwStats.extractionStagePercentage > 100 ? t('dashboard.depth_250_450') :
+                                                    gwStats.extractionStagePercentage > 70 ? t('dashboard.depth_150_250') : t('dashboard.depth_100_150')
                                                 ) : 'Loading...'}
                                             </span>
                                         </div>
                                         <div className="d-flex justify-content-between mb-3 border-bottom border-secondary pb-2" style={{ borderColor: 'rgba(255,255,255,0.05) !important' }}>
-                                            <span className="text-light">Total Extraction:</span>
+                                            <span className="text-light">{t('dashboard.total_extraction') || 'Total Extraction'}:</span>
                                             <span className="fw-bold text-danger">{gwStats ? `${gwStats.totalExtractionBCM.toFixed(2)} BCM` : 'Loading...'}</span>
                                         </div>
                                         <div className="d-flex justify-content-between mb-3 border-bottom border-secondary pb-2" style={{ borderColor: 'rgba(255,255,255,0.05) !important' }}>
-                                            <span className="text-light">Assessed Blocks:</span>
-                                            <span className="fw-bold">{gwStats ? `${gwStats.safeBlocksCount} / ${gwStats.totalAssessedBlocks} Safe` : 'Loading...'}</span>
+                                            <span className="text-light">{t('dashboard.assessed_blocks') || 'Assessed Blocks'}:</span>
+                                            <span className="fw-bold">{gwStats ? `${gwStats.safeBlocksCount} / ${gwStats.totalAssessedBlocks} ${t('dashboard.safe')}` : 'Loading...'}</span>
                                         </div>
                                     </Col>
                                 </Row>

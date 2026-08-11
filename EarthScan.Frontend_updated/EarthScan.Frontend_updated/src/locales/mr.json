@@ -196,6 +196,8 @@
     "select_saved": "जतन केलेली मालमत्ता निवडा (पर्यायी)",
     "select_land_placeholder": "-- जतन केलेली जमीन निवडा --",
     "region_placeholder": "प्रदेशाचे नाव किंवा पिन कोड",
+    "growth_rate_label": "वार्षिक मूल्य वाढीचा दर (%)",
+    "maintenance_cost_label": "वार्षिक देखभाल खर्च (₹)",
     "time_horizon": "वेळ क्षितिज (वर्षे): {{years}}",
     "running_model": "AI मॉडेल सुरू आहे...",
     "run_sim": "सिम्युलेशन चालवा",

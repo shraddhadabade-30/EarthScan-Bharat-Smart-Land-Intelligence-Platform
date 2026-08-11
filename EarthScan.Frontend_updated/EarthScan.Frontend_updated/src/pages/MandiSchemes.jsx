@@ -22,59 +22,6 @@ export default function MandiSchemes() {
 
     const { t } = useTranslation();
 
-    // Deterministic simulation generator for any searched crop
-    const getSimulatedFallback = (query) => {
-        if (!query) return [];
-        const capitalized = query.trim().charAt(0).toUpperCase() + query.trim().slice(1).toLowerCase();
-        
-        let hash = 0;
-        for (let i = 0; i < capitalized.length; i++) {
-            hash = capitalized.charCodeAt(i) + ((hash << 5) - hash);
-        }
-        
-        const markets = ["Mumbai (Vashi)", "Pune (Gultekdi)", "Nagpur (Kalamna)", "Nashik", "Kolhapur"];
-        return markets.map((market, idx) => {
-            const seed = Math.abs(hash + idx * 37);
-            const baseVal = 1800 + (seed % 4200); // ₹1,800 to ₹6,000 per quintal
-            const minPrice = Math.round(baseVal * 0.9);
-            const maxPrice = Math.round(baseVal * 1.15);
-            const modalPrice = Math.round(baseVal);
-            const arrivalQuantity = 5 + (seed % 150);
-            const isUp = (seed % 2) === 0;
-            const changePct = 0.5 + ((seed % 95) / 10.0);
-            
-            return {
-                id: 9999 + idx,
-                commodity: capitalized,
-                market: market,
-                variety: idx === 0 ? "Premium / Super" : "Regular / Common",
-                minPrice: minPrice,
-                maxPrice: maxPrice,
-                modalPrice: modalPrice,
-                arrivalQuantity: arrivalQuantity,
-                lastUpdated: new Date().toISOString(),
-                isUp: isUp,
-                trend: `${isUp ? '+' : '-'}${changePct.toFixed(1)}%`
-            };
-        });
-    };
-
-    const generateSimulatedHistory = (modalPrice, isUp) => {
-        const history = [];
-        const base = Number(modalPrice) || 3000;
-        const today = new Date();
-        for (let i = 6; i >= 0; i--) {
-            const date = new Date(today);
-            date.setDate(today.getDate() - i);
-            const dateStr = date.toISOString().split('T')[0];
-            const fluctuation = 0.96 + (Math.sin(i) * 0.04) + (isUp ? (6-i)*0.008 : -(6-i)*0.008);
-            history.push({
-                date: dateStr,
-                price: Math.round(base * fluctuation)
-            });
-        }
-        return history;
-    };
 
     // Fetch Mandi Prices on search change (with 400ms debounce)
     useEffect(() => {
@@ -86,10 +33,7 @@ export default function MandiSchemes() {
                     : `${API_BASE_URL}/api/mandi`;
                 const pricesResponse = await axios.get(url);
                 
-                let data = pricesResponse.data;
-                if ((!data || data.length === 0) && searchQuery) {
-                    data = getSimulatedFallback(searchQuery);
-                }
+                let data = pricesResponse.data || [];
                 setMandiPrices(data);
                 
                 // Select first item by default if available
@@ -101,13 +45,9 @@ export default function MandiSchemes() {
                 }
             } catch (err) {
                 console.error("Error loading mandi prices:", err);
-                if (searchQuery) {
-                    const fallbackData = getSimulatedFallback(searchQuery);
-                    setMandiPrices(fallbackData);
-                    if (fallbackData.length > 0) {
-                        handleSelectMandi(fallbackData[0]);
-                    }
-                }
+                setMandiPrices([]);
+                setSelectedMandi(null);
+                setHistoryData([]);
             } finally {
                 setLoadingPrices(false);
             }
@@ -141,14 +81,11 @@ export default function MandiSchemes() {
         setLoadingHistory(true);
         try {
             const res = await axios.get(`${API_BASE_URL}/api/mandi/history?mandiPriceId=${mandi.id}`);
-            let history = res.data;
-            if (!history || history.length === 0 || mandi.id >= 9999) {
-                history = generateSimulatedHistory(mandi.modalPrice, mandi.isUp);
-            }
+            let history = res.data || [];
             setHistoryData(history);
         } catch (err) {
             console.error("Error loading price history:", err);
-            setHistoryData(generateSimulatedHistory(mandi.modalPrice, mandi.isUp));
+            setHistoryData([]);
         } finally {
             setLoadingHistory(false);
         }

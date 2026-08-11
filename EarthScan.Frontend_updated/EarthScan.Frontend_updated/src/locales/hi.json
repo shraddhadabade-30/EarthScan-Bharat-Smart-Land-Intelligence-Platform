@@ -196,6 +196,8 @@
     "select_saved": "सहेजी गई संपत्ति चुनें (वैकल्पिक)",
     "select_land_placeholder": "-- सहेजी गई भूमि चुनें --",
     "region_placeholder": "क्षेत्र का नाम या पिनकोड",
+    "growth_rate_label": "वार्षिक मूल्य वृद्धि दर (%)",
+    "maintenance_cost_label": "वार्षिक रखरखाव लागत (₹)",
     "time_horizon": "समय सीमा (वर्ष): {{years}}",
     "running_model": "AI मॉडल चल रहा है...",
     "run_sim": "सिम्युलेशन चलाएं",

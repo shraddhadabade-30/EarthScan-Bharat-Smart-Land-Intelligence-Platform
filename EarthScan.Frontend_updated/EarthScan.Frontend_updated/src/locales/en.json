@@ -196,6 +196,8 @@
     "select_saved": "Select Saved Property (Optional)",
     "select_land_placeholder": "-- Select Saved Land --",
     "region_placeholder": "Region name or pincode",
+    "growth_rate_label": "Annual Appreciation Rate (%)",
+    "maintenance_cost_label": "Annual Maintenance Cost (₹)",
     "time_horizon": "Time Horizon (Years): {{years}}",
     "running_model": "Running AI Model...",
     "run_sim": "Run Simulation",

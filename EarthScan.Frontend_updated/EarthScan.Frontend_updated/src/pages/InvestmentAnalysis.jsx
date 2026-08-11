@@ -32,6 +32,8 @@ export default function InvestmentAnalysis() {
     const [crop, setCrop] = useState('Sugarcane');
     const [investment, setInvestment] = useState(5130000);
     const [years, setYears] = useState(5);
+    const [growthRate, setGrowthRate] = useState(10); // Default 10% appreciation
+    const [maintenanceCost, setMaintenanceCost] = useState(200000); // Default 2L annual cost
 
     const [loading, setLoading] = useState(false);
     const [results, setResults] = useState(null);
@@ -68,8 +70,8 @@ export default function InvestmentAnalysis() {
             const data = [];
             const landInvestment = selectedLand ? Number(selectedLand.price || 5130000) : Number(investment);
             let currentVal = landInvestment;
-            let baseGrowthRate = crop === 'Sugarcane' ? 0.12 : crop === 'Cotton' ? 0.08 : crop === 'Mango' ? 0.15 : 0.10;
-            let finalRisk = crop === 'Cotton' ? 'High' : 'Medium';
+            let baseGrowthRate = Number(growthRate) / 100.0;
+            let finalRisk = baseGrowthRate > 0.15 ? 'High' : baseGrowthRate > 0.08 ? 'Medium' : 'Low';
 
             if (selectedLand) {
                 const score = selectedLand.score || 75;
@@ -84,14 +86,22 @@ export default function InvestmentAnalysis() {
                 }
             }
 
+            let breakEvenYear = "N/A";
             for (let i = 0; i <= years; i++) {
+                const yearCost = landInvestment + (i * Number(maintenanceCost));
                 data.push({
                     year: `Year ${i}`,
                     value: Math.round(currentVal),
-                    cost: Math.round(landInvestment + (i * 200000)) // Assuming 2L maintenance per year
+                    cost: Math.round(yearCost)
                 });
+
+                if (breakEvenYear === "N/A" && currentVal > yearCost && i > 0) {
+                    breakEvenYear = `Year ${i}`;
+                }
+
                 // Compound growth
-                currentVal += (currentVal * baseGrowthRate) + (Math.random() * 513000);
+                const fluctuation = (Math.random() * 0.02) - 0.01; // +/- 1% yearly variance
+                currentVal += (currentVal * (baseGrowthRate + fluctuation));
             }
 
             const finalValue = data[data.length - 1].value;
@@ -102,7 +112,7 @@ export default function InvestmentAnalysis() {
                 data,
                 finalValue,
                 roi,
-                breakEven: crop === 'Mango' ? 'Year 4' : 'Year 2',
+                breakEven: breakEvenYear,
                 risk: finalRisk
             });
             setLoading(false);
@@ -181,6 +191,27 @@ export default function InvestmentAnalysis() {
                                         type="number"
                                         value={investment}
                                         onChange={e => setInvestment(e.target.value)}
+                                        className="bg-transparent text-white border-secondary shadow-none"
+                                    />
+                                </Form.Group>
+
+                                <Form.Group className="mb-3">
+                                    <Form.Label className="text-secondary small">{t('investment.growth_rate_label', 'Annual Appreciation Rate (%)')}</Form.Label>
+                                    <Form.Control
+                                        type="number"
+                                        min={1} max={100}
+                                        value={growthRate}
+                                        onChange={e => setGrowthRate(e.target.value)}
+                                        className="bg-transparent text-white border-secondary shadow-none"
+                                    />
+                                </Form.Group>
+
+                                <Form.Group className="mb-3">
+                                    <Form.Label className="text-secondary small">{t('investment.maintenance_cost_label', 'Annual Maintenance Cost (₹)')}</Form.Label>
+                                    <Form.Control
+                                        type="number"
+                                        value={maintenanceCost}
+                                        onChange={e => setMaintenanceCost(e.target.value)}
                                         className="bg-transparent text-white border-secondary shadow-none"
                                     />
                                 </Form.Group>

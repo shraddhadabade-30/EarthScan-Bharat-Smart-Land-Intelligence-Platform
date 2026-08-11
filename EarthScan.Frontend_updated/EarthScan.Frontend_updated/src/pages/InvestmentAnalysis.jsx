@@ -130,17 +130,17 @@ export default function InvestmentAnalysis() {
                 <Col lg={4}>
                     <Card className="glass-panel border-0 text-white h-100 shadow">
                         <Card.Body className="p-4">
-                            <h5 className="fw-bold mb-4 text-light">Simulation Parameters</h5>
+                            <h5 className="fw-bold mb-4 text-light">{t('investment.sim_params')}</h5>
                             <Form>
                                 <Form.Group className="mb-3">
-                                    <Form.Label className="text-secondary small">Select Saved Property (Optional)</Form.Label>
+                                    <Form.Label className="text-secondary small">{t('investment.select_saved')}</Form.Label>
                                     <Form.Select
                                         value={selectedSavedLandId}
                                         onChange={e => setSelectedSavedLandId(e.target.value)}
                                         className="bg-transparent text-white border-secondary shadow-none"
                                         style={{ backgroundColor: '#141d2b' }}
                                     >
-                                        <option value="" className="bg-dark">-- Select Saved Land --</option>
+                                        <option value="" className="bg-dark">{t('investment.select_land_placeholder')}</option>
                                         {savedLocations.map((land, idx) => (
                                             <option key={idx} value={land.id} className="bg-dark">
                                                 {land.name} ({land.pin})
@@ -150,18 +150,18 @@ export default function InvestmentAnalysis() {
                                 </Form.Group>
 
                                 <Form.Group className="mb-3">
-                                    <Form.Label className="text-secondary small">Target Region</Form.Label>
+                                    <Form.Label className="text-secondary small">{t('investment.region')}</Form.Label>
                                     <Form.Control
                                         type="text"
                                         value={region}
                                         onChange={e => setRegion(e.target.value)}
                                         className="bg-transparent text-white border-secondary shadow-none"
-                                        placeholder="Region name or pincode"
+                                        placeholder={t('investment.region_placeholder')}
                                     />
                                 </Form.Group>
 
                                 <Form.Group className="mb-3">
-                                    <Form.Label className="text-secondary small">Primary Planned Crop</Form.Label>
+                                    <Form.Label className="text-secondary small">{t('investment.crop')}</Form.Label>
                                     <Form.Select
                                         value={crop}
                                         onChange={e => setCrop(e.target.value)}
@@ -176,7 +176,7 @@ export default function InvestmentAnalysis() {
                                 </Form.Group>
 
                                 <Form.Group className="mb-3">
-                                    <Form.Label className="text-secondary small">Initial Investment (₹)</Form.Label>
+                                    <Form.Label className="text-secondary small">{t('investment.amount')}</Form.Label>
                                     <Form.Control
                                         type="number"
                                         value={investment}
@@ -186,7 +186,7 @@ export default function InvestmentAnalysis() {
                                 </Form.Group>
 
                                 <Form.Group className="mb-4">
-                                    <Form.Label className="text-secondary small">Time Horizon (Years): {years}</Form.Label>
+                                    <Form.Label className="text-secondary small">{t('investment.time_horizon', { years })}</Form.Label>
                                     <Form.Range
                                         min={1} max={15}
                                         value={years}
@@ -201,7 +201,7 @@ export default function InvestmentAnalysis() {
                                     disabled={loading}
                                 >
                                     {loading ? <CircularProgress size={20} color="inherit" /> : <i className="bi bi-cpu"></i>}
-                                    {loading ? 'Running AI Model...' : 'Run Simulation'}
+                                    {loading ? t('investment.running_model') : t('investment.run_sim')}
                                 </Button>
                             </Form>
 
@@ -234,15 +234,15 @@ export default function InvestmentAnalysis() {
                                             <Row className="g-2 text-center text-secondary small">
                                                 <Col xs={4}>
                                                     <div className="text-success fw-bold">{selectedLand.soil || 'N/A'}</div>
-                                                    <div style={{ fontSize: '10px' }}>Soil Type</div>
+                                                    <div style={{ fontSize: '10px' }}>{t('investment.soil_type')}</div>
                                                 </Col>
                                                 <Col xs={4}>
                                                     <div className="text-info fw-bold">{selectedLand.water || 'N/A'}m</div>
-                                                    <div style={{ fontSize: '10px' }}>Water Level</div>
+                                                    <div style={{ fontSize: '10px' }}>{t('investment.water_level')}</div>
                                                 </Col>
                                                 <Col xs={4}>
                                                     <div className="text-warning fw-bold">{selectedLand.score || '75'}</div>
-                                                    <div style={{ fontSize: '10px' }}>Intelligence Score</div>
+                                                    <div style={{ fontSize: '10px' }}>{t('investment.intel_score')}</div>
                                                 </Col>
                                             </Row>
                                         </div>
@@ -260,7 +260,7 @@ export default function InvestmentAnalysis() {
                                 <Col md={4}>
                                     <Card className="glass-panel border-0 text-white text-center shadow-sm">
                                         <Card.Body className="py-4">
-                                            <h6 className="text-secondary mb-2">Projected ROI</h6>
+                                            <h6 className="text-secondary mb-2">{t('investment.projected_roi')}</h6>
                                             <h2 className="fw-bold text-success mb-0">+{results.roi}%</h2>
                                         </Card.Body>
                                     </Card>
@@ -268,7 +268,7 @@ export default function InvestmentAnalysis() {
                                 <Col md={4}>
                                     <Card className="glass-panel border-0 text-white text-center shadow-sm">
                                         <Card.Body className="py-4">
-                                            <h6 className="text-secondary mb-2">Estimated Value (Yr {years})</h6>
+                                            <h6 className="text-secondary mb-2">{t('investment.est_value', { years })}</h6>
                                             <h2 className="fw-bold text-info mb-0">{formatCurrency(results.finalValue)}</h2>
                                         </Card.Body>
                                     </Card>
@@ -276,7 +276,7 @@ export default function InvestmentAnalysis() {
                                 <Col md={4}>
                                     <Card className="glass-panel border-0 text-white text-center shadow-sm">
                                         <Card.Body className="py-4">
-                                            <h6 className="text-secondary mb-2">Break-Even Point</h6>
+                                            <h6 className="text-secondary mb-2">{t('investment.breakeven_pt')}</h6>
                                             <h2 className="fw-bold text-warning mb-0">{results.breakEven}</h2>
                                         </Card.Body>
                                     </Card>
@@ -286,9 +286,9 @@ export default function InvestmentAnalysis() {
                             <Card className="glass-panel border-0 text-white shadow-sm mb-4">
                                 <Card.Body className="p-4">
                                     <div className="d-flex justify-content-between align-items-center mb-4">
-                                        <h5 className="fw-bold mb-0 text-light">Value Growth Projection</h5>
+                                        <h5 className="fw-bold mb-0 text-light">{t('investment.value_growth')}</h5>
                                         <Badge bg={results.risk === 'High' ? 'danger' : results.risk === 'Low' ? 'success' : 'warning'} className="px-3 py-2 rounded-pill">
-                                            Risk Profile: {results.risk}
+                                            {t('investment.risk_profile', { risk: results.risk })}
                                         </Badge>
                                     </div>
                                     <div style={{ height: '300px', width: '100%' }}>
@@ -308,8 +308,8 @@ export default function InvestmentAnalysis() {
                                                     itemStyle={{ color: '#00e676' }}
                                                     formatter={(value) => formatCurrency(value)}
                                                 />
-                                                <Area type="monotone" dataKey="value" stroke="#00e676" fillOpacity={1} fill="url(#colorValue)" name="Projected Value" strokeWidth={3} />
-                                                <Line type="monotone" dataKey="cost" stroke="#ff5252" strokeWidth={2} dot={false} name="Cumulative Cost" />
+                                                <Area type="monotone" dataKey="value" stroke="#00e676" fillOpacity={1} fill="url(#colorValue)" name={t('investment.projected_value')} strokeWidth={3} />
+                                                <Line type="monotone" dataKey="cost" stroke="#ff5252" strokeWidth={2} dot={false} name={t('investment.cumulative_cost')} />
                                             </AreaChart>
                                         </ResponsiveContainer>
                                     </div>
@@ -320,8 +320,8 @@ export default function InvestmentAnalysis() {
                         <Card className="glass-panel border-0 text-white h-100 d-flex justify-content-center align-items-center shadow-lg" style={{ borderRadius: '16px', minHeight: '400px' }}>
                             <Card.Body className="text-center p-5 text-secondary">
                                 <i className="bi bi-bar-chart-line mb-3 d-block text-success animate__animated animate__pulse animate__infinite" style={{ fontSize: '4.5rem' }}></i>
-                                <h4 className="fw-bold text-white mb-2">Awaiting Parameters</h4>
-                                <p className="mb-0 mx-auto" style={{ maxWidth: '440px' }}>Select a saved property or adjust the custom parameters on the left, then click <strong>Run Simulation</strong> to simulate projected ROI, land appreciation, and yield revenue over time.</p>
+                                <h4 className="fw-bold text-white mb-2">{t('investment.awaiting_params')}</h4>
+                                <p className="mb-0 mx-auto" style={{ maxWidth: '440px' }}>{t('investment.awaiting_params_desc')}</p>
                             </Card.Body>
                         </Card>
                     )}

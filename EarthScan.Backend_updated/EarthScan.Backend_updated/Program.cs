@@ -61,36 +61,25 @@ using (var scope = app.Services.CreateScope())
         var context = services.GetRequiredService<EarthScanDbContext>();
         context.Database.Migrate();
 
-        // Seed demo accounts
-        if (!context.Users.Any(u => u.Email == "shraddha@earthscan.com"))
+        // Update any Lands in DB that have no ImagePath, assigning them available demo image paths
+        var lands = context.Lands.Where(l => string.IsNullOrEmpty(l.ImagePath) || l.ImagePath.Trim() == "").ToList();
+        if (lands.Any())
         {
-            context.Users.Add(new User
+            var demoImages = new[]
             {
-                Name = "Shraddha (Seller)",
-                Email = "shraddha@earthscan.com",
-                Role = "Land Buyer",
-                PasswordHash = BCrypt.Net.BCrypt.HashPassword("Password123"),
-                Phone = "9876543210",
-                Location = "Pune",
-                Village = "Pune",
-                Pincode = "411001"
-            });
-        }
-        if (!context.Users.Any(u => u.Email == "sanika@earthscan.com"))
-        {
-            context.Users.Add(new User
+                "/uploads/lands/0c067f3c-94c5-4380-9086-75607ef6a907.jpeg",
+                "/uploads/lands/2c853d98-789b-4d13-8620-7e8a0d870c70.jpeg",
+                "/uploads/lands/53d70d3b-32b6-42c0-a630-f3c685e2f191.jpeg",
+                "/uploads/lands/eb9f122e-4dea-4307-9aed-6d522ed582c7.jpeg"
+            };
+            int index = 0;
+            foreach (var land in lands)
             {
-                Name = "Sanika (Buyer)",
-                Email = "sanika@earthscan.com",
-                Role = "Land Buyer",
-                PasswordHash = BCrypt.Net.BCrypt.HashPassword("Password123"),
-                Phone = "9123456780",
-                Location = "Mumbai",
-                Village = "Mumbai",
-                Pincode = "400001"
-            });
+                land.ImagePath = demoImages[index % demoImages.Length];
+                index++;
+            }
+            context.SaveChanges();
         }
-        context.SaveChanges();
     }
     catch (Exception ex)
     {

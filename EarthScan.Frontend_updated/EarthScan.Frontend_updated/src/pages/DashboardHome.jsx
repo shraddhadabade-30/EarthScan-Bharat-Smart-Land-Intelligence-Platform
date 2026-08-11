@@ -367,7 +367,7 @@ export default function DashboardHome() {
         setLocationName(initialLocName);
         
         loadWeather(initialLat, initialLng);
-        loadGroundwater(stateVal).finally(() => setLoading(false));
+        loadGroundwater(stateVal, initialLat, initialLng, initialPin).finally(() => setLoading(false));
     }, [user, t]);
 
     async function loadWeather(lat, lng) {
@@ -382,10 +382,19 @@ export default function DashboardHome() {
         }
     }
 
-    async function loadGroundwater(stateVal) {
+    async function loadGroundwater(stateVal, lat = null, lng = null, pincodeVal = null) {
         setGwLoading(true);
         try {
-            const res = await fetch(`${API_BASE_URL}/api/groundwater/state/${encodeURIComponent(stateVal)}`);
+            let url = `${API_BASE_URL}/api/groundwater/state/${encodeURIComponent(stateVal)}`;
+            const queryParams = [];
+            if (lat !== null) queryParams.push(`latitude=${lat}`);
+            if (lng !== null) queryParams.push(`longitude=${lng}`);
+            if (pincodeVal !== null) queryParams.push(`pincode=${encodeURIComponent(pincodeVal)}`);
+            if (queryParams.length > 0) {
+                url += `?${queryParams.join('&')}`;
+            }
+
+            const res = await fetch(url);
             if (res.ok) {
                 const data = await res.json();
                 setGwStats(data);
@@ -439,7 +448,7 @@ export default function DashboardHome() {
                                 setLocationName(`${trimmedQuery}, ${cleanName}, ${district}, ${state}`);
                                 setPinCode(trimmedQuery);
                                 await loadWeather(lat, lon);
-                                await loadGroundwater(state);
+                                await loadGroundwater(state, lat, lon, trimmedQuery);
                                 resolved = true;
                             }
                         }
@@ -470,7 +479,7 @@ export default function DashboardHome() {
                             setLocationName(`${trimmedQuery}, ${cleanName}, ${distStr}`);
                             setPinCode(trimmedQuery);
                             await loadWeather(lat, lon);
-                            await loadGroundwater(place.state);
+                            await loadGroundwater(place.state, lat, lon, trimmedQuery);
                             return;
                         } else {
                             throw new Error("Both PIN services failed");
@@ -488,7 +497,7 @@ export default function DashboardHome() {
                     setLocationName(`PIN: ${trimmedQuery}`);
                     setPinCode(trimmedQuery);
                     await loadWeather(geo.lat, geo.lon);
-                    await loadGroundwater('Maharashtra');
+                    await loadGroundwater('Maharashtra', geo.lat, geo.lon, trimmedQuery);
                     setCoords({ lat: geo.lat, lng: geo.lon });
                     return;
                 }
@@ -508,11 +517,11 @@ export default function DashboardHome() {
                 await loadWeather(geo.lat, geo.lon);
                 
                 const stateVal = geo.state || 'Maharashtra';
-                await loadGroundwater(stateVal);
+                await loadGroundwater(stateVal, geo.lat, geo.lon, matchedPin);
             } else {
                 setLocationName(trimmedQuery);
                 await loadWeather(18.5204, 73.8567);
-                await loadGroundwater('Maharashtra');
+                await loadGroundwater('Maharashtra', 18.5204, 73.8567);
             }
         } catch (error) {
             console.error('Search failed:', error);

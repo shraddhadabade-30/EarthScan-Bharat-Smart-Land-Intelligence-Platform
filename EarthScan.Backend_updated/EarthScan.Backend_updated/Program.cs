@@ -61,22 +61,30 @@ using (var scope = app.Services.CreateScope())
         var context = services.GetRequiredService<EarthScanDbContext>();
         context.Database.Migrate();
 
-        // Update any Lands in DB that have no ImagePath, assigning them available demo image paths
-        var lands = context.Lands.Where(l => string.IsNullOrEmpty(l.ImagePath) || l.ImagePath.Trim() == "").ToList();
+        // Update any Lands in DB, assigning them distinct realistic crop image URLs
+        var lands = context.Lands.ToList();
         if (lands.Any())
         {
             var demoImages = new[]
             {
-                "/uploads/lands/0c067f3c-94c5-4380-9086-75607ef6a907.jpeg",
-                "/uploads/lands/2c853d98-789b-4d13-8620-7e8a0d870c70.jpeg",
-                "/uploads/lands/53d70d3b-32b6-42c0-a630-f3c685e2f191.jpeg",
-                "/uploads/lands/eb9f122e-4dea-4307-9aed-6d522ed582c7.jpeg"
+                "https://images.unsplash.com/photo-1595974482597-4b8da8879bc5?auto=format&fit=crop&w=800&q=80", // Sugarcane
+                "https://images.unsplash.com/photo-1532499016263-f2c3e89df9cd?auto=format&fit=crop&w=800&q=80", // Grapes
+                "https://images.unsplash.com/photo-1553137141-79172256f7ef?auto=format&fit=crop&w=800&q=80", // Orchard
+                "https://images.unsplash.com/photo-1594900010629-9e8c3132e49c?auto=format&fit=crop&w=800&q=80", // Cotton
+                "https://images.unsplash.com/photo-1541344999736-83eadb4b48f1?auto=format&fit=crop&w=800&q=80", // Pomegranate
+                "https://images.unsplash.com/photo-1574323347407-f5e1ad6d020b?auto=format&fit=crop&w=800&q=80", // Wheat
+                "https://images.unsplash.com/photo-1500937386664-56d159062255?auto=format&fit=crop&w=800&q=80", // Farm Landscape
+                "https://images.unsplash.com/photo-1536256263959-770b48d82b0a?auto=format&fit=crop&w=800&q=80", // Rice Field
+                "https://images.unsplash.com/photo-1502082553048-f009c37129b9?auto=format&fit=crop&w=800&q=80"  // Coconut Farm
             };
             int index = 0;
             foreach (var land in lands)
             {
-                land.ImagePath = demoImages[index % demoImages.Length];
-                index++;
+                if (string.IsNullOrEmpty(land.ImagePath) || land.ImagePath.Trim() == "" || land.ImagePath.StartsWith("http") || land.ImagePath.Contains("eb9f122e") || land.ImagePath.Contains("53d70d3b") || land.ImagePath.Contains("2c853d98") || land.ImagePath.Contains("0c067f3c"))
+                {
+                    land.ImagePath = demoImages[index % demoImages.Length];
+                    index++;
+                }
             }
             context.SaveChanges();
         }

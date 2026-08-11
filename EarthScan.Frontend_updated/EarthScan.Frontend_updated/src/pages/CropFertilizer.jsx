@@ -278,9 +278,9 @@ export default function CropFertilizer() {
                                                             <div className="d-flex justify-content-between align-items-start mb-3">
                                                                 <div>
                                                                     <h4 className={`fw-bold text-${rec.bg} mb-1`}>{rec.crop}</h4>
-                                                                    <p className="text-secondary small mb-0">High Suitability ({rec.match}% Match)</p>
+                                                                    <p className="text-secondary small mb-0">{t('crop_ai.suitability', "High Suitability")} ({rec.match}% {t('crop_ai.match', "Match")})</p>
                                                                 </div>
-                                                                <Badge bg={rec.bg}>{rec.type}</Badge>
+                                                                <Badge bg={rec.bg}>{t(`crop_ai.${rec.type.toLowerCase().replace(/\s+/g, '_')}`, rec.type)}</Badge>
                                                             </div>
                                                             <p className="small mb-3">{rec.desc}</p>
                                                             <div className="p-2 rounded border border-secondary" style={{ background: 'rgba(0,0,0,0.2)' }}>
@@ -298,7 +298,7 @@ export default function CropFertilizer() {
                                     <div className="h-100 d-flex flex-column justify-content-center align-items-center text-secondary border border-secondary rounded glass-panel p-5 text-center" style={{ minHeight: '300px', borderColor: 'rgba(255,255,255,0.1) !important' }}>
                                         <i className="bi bi-robot mb-3" style={{ fontSize: '3rem' }}></i>
                                         <h5 className="fw-bold text-white">{t('crop_ai.awaiting')}</h5>
-                                        <p className="mb-0 mx-auto" style={{ maxWidth: '400px' }}>Enter your {t('crop_ai.soil_params')} and click "Get AI Recommendations" to generate custom crop suggestions.</p>
+                                        <p className="mb-0 mx-auto" style={{ maxWidth: '400px' }}>{t('crop_ai.awaiting_desc')}</p>
                                     </div>
                                 )}
                             </Col>
@@ -317,7 +317,7 @@ export default function CropFertilizer() {
                                             <Form.Label className="text-secondary small">{t('crop_ai.crop_category')}</Form.Label>
                                             <Form.Control
                                                 type="text"
-                                                placeholder="e.g. Cotton, Rice, Sugarcane, Grapes, Mango..."
+                                                placeholder={t('crop_ai.search_crop', "e.g. Cotton, Rice, Sugarcane, Grapes, Mango...")}
                                                 value={cropCategory}
                                                 onChange={(e) => setCropCategory(e.target.value)}
                                                 className="bg-transparent text-white border-secondary shadow-none"

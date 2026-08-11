@@ -231,6 +231,21 @@ export default function BorewellPlanner() {
         return val;
     };
 
+    const getAquiferTranslation = (val) => {
+        if (!val) return '';
+        const lower = val.toLowerCase();
+        if (lower.includes('basalt')) return t('borewell.hard_rock_basalt', "Hard Rock Basalt");
+        if (lower.includes('alluvium')) return t('borewell.alluvium', "Alluvium");
+        return val;
+    };
+
+    const getRiversTranslation = (val) => {
+        if (!val) return '';
+        const lower = val.toLowerCase();
+        if (lower.includes('none')) return t('borewell.none_within_2km', "None within 2km");
+        return val.replace('River', t('borewell.river', 'River')).replace('river', t('borewell.river', 'River'));
+    };
+
     const getFormattedDisclaimer = () => {
         if (!results || !results.profile) return '';
         if (results.profile.dataMode === 'LIVE') {
@@ -1030,11 +1045,11 @@ export default function BorewellPlanner() {
                                                 </div>
                                                 <div className="d-flex justify-content-between border-bottom border-secondary pb-2 mb-2" style={{ borderColor: 'rgba(255,255,255,0.05) !important' }}>
                                                     <span className="text-secondary small">{t('borewell.nearby_rivers')}</span>
-                                                    <span className="fw-bold">{results.profile.nearbyRivers}</span>
+                                                    <span className="fw-bold">{getRiversTranslation(results.profile.nearbyRivers)}</span>
                                                 </div>
                                                 <div className="d-flex justify-content-between border-bottom border-secondary pb-2 mb-2" style={{ borderColor: 'rgba(255,255,255,0.05) !important' }}>
                                                     <span className="text-secondary small">{t('borewell.aquifer_type')}</span>
-                                                    <span className="fw-bold">{results.profile.aquiferType}</span>
+                                                    <span className="fw-bold">{getAquiferTranslation(results.profile.aquiferType)}</span>
                                                 </div>
                                                 <div className="d-flex justify-content-between border-bottom border-secondary pb-2" style={{ borderColor: 'rgba(255,255,255,0.05) !important' }}>
                                                     <span className="text-secondary small">{t('borewell.gw_risk')}</span>

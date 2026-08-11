@@ -43,20 +43,36 @@ namespace EarthScan.Backend.Controllers
                 }
                 string base64Image = Convert.ToBase64String(fileBytes);
 
-                string targetLang = "English";
-                string langInstruction = "Return all values in English language.";
+                string targetLangName = "English";
+                string cropNameDesc = "crop name in English";
+                string diseaseNameDesc = "disease name in English, 'None' if healthy";
+                string causeDesc = "cause of disease in English, 'None' if healthy";
+                string treatmentDesc = "organic/biological treatment in English, 'None' if healthy";
+                string fertilizerDesc = "fertilizer suggestion in English, 'None' if healthy";
+                string preventiveDesc = "preventive measures in English, 'None' if healthy";
+
                 if (!string.IsNullOrEmpty(activeLang))
                 {
                     var cleanLang = activeLang.Trim().ToLower();
                     if (cleanLang.StartsWith("mr"))
                     {
-                        targetLang = "Marathi";
-                        langInstruction = "CRITICAL: You MUST write every single word of the response (DetectedCrop, DiseaseName, Cause, Treatment, FertilizerSuggestion, PreventiveMeasures) strictly in Marathi language using Devanagari script. Transliterate English names of chemicals (like Mancozeb as मॅन्कोझेब, Chlorothalonil as क्लोरोथॅलोनिल, Copper Oxychloride as कॉपर ऑक्सीक्लोराइड, etc.) into Devanagari script. Absolutely no English alphabets or English sentences are allowed in the text fields.";
+                        targetLangName = "Marathi";
+                        cropNameDesc = "crop name strictly in Marathi language (मराठीत)";
+                        diseaseNameDesc = "disease name strictly in Marathi language (मराठीत), write 'काही नाही' if healthy";
+                        causeDesc = "cause of disease strictly in Marathi language (मराठीत), write 'काही नाही' if healthy";
+                        treatmentDesc = "organic/biological treatment strictly in Marathi (मराठीत), write 'कोणताही उपचार आवश्यक नाही' if healthy";
+                        fertilizerDesc = "fertilizer suggestion strictly in Marathi (मराठीत), write 'कोणतीही खत शिफारस नाही' if healthy";
+                        preventiveDesc = "preventive measures strictly in Marathi (मराठीत), write 'नियमित देखरेख ठेवा' if healthy";
                     }
                     else if (cleanLang.StartsWith("hi"))
                     {
-                        targetLang = "Hindi";
-                        langInstruction = "CRITICAL: You MUST write every single word of the response (DetectedCrop, DiseaseName, Cause, Treatment, FertilizerSuggestion, PreventiveMeasures) strictly in Hindi language using Devanagari script. Transliterate English names of chemicals into Devanagari script. Absolutely no English alphabets or English sentences are allowed in the text fields.";
+                        targetLangName = "Hindi";
+                        cropNameDesc = "crop name strictly in Hindi language (हिंदी में)";
+                        diseaseNameDesc = "disease name strictly in Hindi language (हिंदी में), write 'कोई नहीं' if healthy";
+                        causeDesc = "cause of disease strictly in Hindi language (हिंदी में), write 'कोई नहीं' if healthy";
+                        treatmentDesc = "organic/biological treatment strictly in Hindi (हिंदी में), write 'किसी उपचार की आवश्यकता नहीं है' if healthy";
+                        fertilizerDesc = "fertilizer suggestion strictly in Hindi (हिंदी में), write 'कोई खाद अनुशंसा नहीं' if healthy";
+                        preventiveDesc = "preventive measures strictly in Hindi (हिंदी में), write 'नियमित निगरानी रखें' if healthy";
                     }
                 }
 
@@ -64,18 +80,21 @@ namespace EarthScan.Backend.Controllers
 The user claims this is a '{cropCategory}' crop. 
 First, identify the actual crop in the image. If the user's claim ('{cropCategory}') does not match the actual crop in the image (and the claim is not just 'General'), set 'IsMismatch' to true.
 Then, identify any plant disease or deficiency.
-Target Language: {targetLang}.
-{langInstruction}
+
+CRITICAL LANGUAGE INSTRUCTION:
+You MUST write every single word of the response (DetectedCrop, DiseaseName, Cause, Treatment, FertilizerSuggestion, PreventiveMeasures) strictly in {targetLangName} language using Devanagari script.
+DO NOT use any English words, English letters, or English sentences.
+For chemical names, transliterate them into Devanagari (e.g. write 'Mancozeb' as 'मॅन्कोझेब', 'NPK' as 'एनपीके', etc.).
 
 Return strictly a valid JSON object matching this schema exactly without markdown formatting:
 {{
-  ""DetectedCrop"": ""string (in {targetLang})"",
+  ""DetectedCrop"": ""{cropNameDesc}"",
   ""IsMismatch"": boolean,
-  ""DiseaseName"": ""string (in {targetLang})"",
-  ""Cause"": ""string (in {targetLang})"",
-  ""Treatment"": ""string (in {targetLang})"",
-  ""FertilizerSuggestion"": ""string (in {targetLang})"",
-  ""PreventiveMeasures"": ""string (in {targetLang})""
+  ""DiseaseName"": ""{diseaseNameDesc}"",
+  ""Cause"": ""{causeDesc}"",
+  ""Treatment"": ""{treatmentDesc}"",
+  ""FertilizerSuggestion"": ""{fertilizerDesc}"",
+  ""PreventiveMeasures"": ""{preventiveDesc}""
 }}";
 
                 var extracted = await _geminiService.GenerateContentAsync(prompt, file.ContentType, base64Image);

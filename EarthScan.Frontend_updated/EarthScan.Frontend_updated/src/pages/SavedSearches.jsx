@@ -30,6 +30,19 @@ export default function SavedSearches() {
         }
     }, [user]);
 
+    const resolveImagePath = (locData) => {
+        if (locData && locData.imagePath && locData.imagePath.trim()) {
+            const firstPath = locData.imagePath.split(',')[0].trim();
+            if (firstPath.startsWith('http') || firstPath.startsWith('data:')) {
+                return firstPath;
+            }
+            const base = API_BASE_URL.endsWith('/') ? API_BASE_URL.slice(0, -1) : API_BASE_URL;
+            const path = firstPath.startsWith('/') ? firstPath : `/${firstPath}`;
+            return `${base}${path}`;
+        }
+        return '';
+    };
+
     const handleDelete = (id) => {
         removeSavedSearch(id);
     };
@@ -114,6 +127,8 @@ export default function SavedSearches() {
         }
     };
 
+    const landsWithImages = savedLocations.filter(loc => loc.imagePath && loc.imagePath.trim());
+
     return (
         <Container fluid className="p-0 d-flex flex-column min-vh-100">
             <div className="flex-grow-1 py-4">
@@ -121,7 +136,7 @@ export default function SavedSearches() {
                     <i className="bi bi-bookmarks text-primary animate__animated animate__pulse animate__infinite"></i> {t('saved.title')}
                 </h2>
                 
-                {savedLocations.length === 0 ? (
+                {landsWithImages.length === 0 ? (
                     <div className="text-center mt-5 text-secondary">
                         <i className="bi bi-folder2-open display-1 text-muted"></i>
                         <h4 className="mt-3 text-light">{t('saved.no_saved')}</h4>
@@ -129,14 +144,14 @@ export default function SavedSearches() {
                     </div>
                 ) : (
                     <Row className="g-4">
-                        {savedLocations.map(location => (
+                        {landsWithImages.map(location => (
                             <Col md={4} key={location.id}>
                                 <Card className="glass-panel border-0 text-white overflow-hidden h-100 shadow-lg" style={{ borderRadius: '16px', background: 'rgba(255, 255, 255, 0.05)' }}>
                                     <div style={{ height: '180px', overflow: 'hidden', position: 'relative' }}>
-                                        {location.imagePath ? (
+                                        {resolveImagePath(location) ? (
                                             <Card.Img 
                                                 variant="top" 
-                                                src={`${API_BASE_URL}${location.imagePath}`} 
+                                                src={resolveImagePath(location)} 
                                                 style={{ height: '100%', objectFit: 'cover', transition: 'transform 0.3s ease' }}
                                                 className="hover-zoom"
                                             />

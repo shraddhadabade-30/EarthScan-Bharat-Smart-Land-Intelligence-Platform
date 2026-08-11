@@ -63,32 +63,13 @@ export const AuthProvider = ({ children }) => {
         setUser(null);
     }, []);
 
-    const switchRole = useCallback(async (targetUser) => {
-        const email = targetUser === 'Shraddha' ? 'shraddha@earthscan.com' : 'sanika@earthscan.com';
-        const password = 'Password123';
-        try {
-            const response = await axios.post(`${API_BASE_URL}/api/auth/login`, { email, password });
-            const { token, user: userData } = response.data;
-            
-            localStorage.setItem('token', token);
-            localStorage.setItem('user', JSON.stringify(userData));
-            
-            axios.defaults.headers.common['Authorization'] = `Bearer ${token}`;
-            setUser(userData);
-            return { success: true, user: userData };
-        } catch (error) {
-            console.error("Demo role switch login failed:", error);
-            return { success: false };
-        }
-    }, []);
-
     const updateUser = useCallback((updatedUserData) => {
         localStorage.setItem('user', JSON.stringify(updatedUserData));
         setUser(updatedUserData);
     }, []);
 
     return (
-        <AuthContext.Provider value={{ user, login, register, logout, loading, updateUser, switchRole }}>
+        <AuthContext.Provider value={{ user, login, register, logout, loading, updateUser }}>
             {children}
         </AuthContext.Provider>
     );

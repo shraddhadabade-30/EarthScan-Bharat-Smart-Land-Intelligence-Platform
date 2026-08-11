@@ -203,35 +203,7 @@ export default function Login() {
                                     <Link to="/register" className="text-primary text-decoration-none small fw-bold">{t('login.sign_up')}</Link>
                                 </div>
 
-                                <div className="text-center mt-3 pt-3 border-top border-secondary" style={{ borderColor: 'rgba(255,255,255,0.1) !important' }}>
-                                    <p className="small text-secondary mb-2" style={{ fontSize: '0.72rem', letterSpacing: '0.5px', textTransform: 'uppercase' }}>Quick Demo Accounts</p>
-                                    <div className="d-flex justify-content-center gap-2">
-                                        <Button 
-                                            variant="outline-info" 
-                                            size="sm" 
-                                            className="fw-bold rounded-pill text-white border-secondary"
-                                            style={{ fontSize: '0.7rem', textTransform: 'none', background: 'rgba(0, 184, 255, 0.08)' }}
-                                            onClick={() => {
-                                                setEmail('sanika@earthscan.com');
-                                                setPassword('Password123');
-                                            }}
-                                        >
-                                            👤 Sanika (Buyer)
-                                        </Button>
-                                        <Button 
-                                            variant="outline-success" 
-                                            size="sm" 
-                                            className="fw-bold rounded-pill text-white border-secondary"
-                                            style={{ fontSize: '0.7rem', textTransform: 'none', background: 'rgba(0, 230, 118, 0.08)' }}
-                                            onClick={() => {
-                                                setEmail('shraddha@earthscan.com');
-                                                setPassword('Password123');
-                                            }}
-                                        >
-                                            👤 Shraddha (Seller)
-                                        </Button>
-                                    </div>
-                                </div>
+
 
                                 <div className="text-center mt-3 d-flex justify-content-center gap-3">
                                     <Link to="/about" className="text-secondary text-decoration-none small hover-white">{t('login.about')}</Link>

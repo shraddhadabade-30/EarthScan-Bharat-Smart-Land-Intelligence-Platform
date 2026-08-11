@@ -15,11 +15,16 @@ export const SavedSearchProvider = ({ children }) => {
 
     const addSavedSearch = (locationData) => {
         setSavedLocations((prev) => {
-            // Avoid duplicates based on pin
-            if (prev.find(loc => loc.pin === locationData.pin)) {
+            const isDuplicate = prev.some(loc => {
+                if (locationData.id && loc.id) {
+                    return String(loc.id) === String(locationData.id);
+                }
+                return loc.pin === locationData.pin;
+            });
+            if (isDuplicate) {
                 return prev;
             }
-            const newLocations = [...prev, { ...locationData, id: Date.now() }];
+            const newLocations = [...prev, { ...locationData, id: locationData.id || Date.now() }];
             localStorage.setItem('savedLocations', JSON.stringify(newLocations));
             return newLocations;
         });

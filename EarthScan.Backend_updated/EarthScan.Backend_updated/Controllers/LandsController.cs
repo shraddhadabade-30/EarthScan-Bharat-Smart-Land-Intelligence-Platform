@@ -37,6 +37,7 @@ namespace EarthScan.Backend.Controllers
         public async Task<ActionResult<IEnumerable<Land>>> GetLands()
         {
             return await _context.Lands
+                .Where(l => l.ImagePath != null && l.ImagePath.Trim() != "")
                 .Include(l => l.Owner)
                 .ToListAsync();
         }

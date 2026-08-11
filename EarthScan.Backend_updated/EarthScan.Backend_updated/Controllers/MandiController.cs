@@ -114,7 +114,7 @@ namespace EarthScan.Backend.Controllers
                     minPrice = m.MinPrice,
                     maxPrice = m.MaxPrice,
                     modalPrice = m.ModalPrice,
-                    arrivalQuantity = 15.0, // Default fallback
+                    arrivalQuantity = m.ArrivalQuantity,
                     arrivalDate = m.LastUpdated.ToString("dd/MM/yyyy"),
                     isUp = m.IsUp,
                     trend = m.Trend

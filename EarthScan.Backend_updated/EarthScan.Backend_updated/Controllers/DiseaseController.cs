@@ -32,6 +32,9 @@ namespace EarthScan.Backend.Controllers
 
             try
             {
+                string? queryLang = Request.Query.ContainsKey("lang") ? Request.Query["lang"].ToString() : null;
+                string? activeLang = !string.IsNullOrEmpty(queryLang) ? queryLang : lang;
+
                 byte[] fileBytes;
                 using (var ms = new MemoryStream())
                 {
@@ -42,9 +45,9 @@ namespace EarthScan.Backend.Controllers
 
                 string targetLang = "English";
                 string langInstruction = "Return all values in English language.";
-                if (!string.IsNullOrEmpty(lang))
+                if (!string.IsNullOrEmpty(activeLang))
                 {
-                    var cleanLang = lang.Trim().ToLower();
+                    var cleanLang = activeLang.Trim().ToLower();
                     if (cleanLang.StartsWith("mr"))
                     {
                         targetLang = "Marathi";

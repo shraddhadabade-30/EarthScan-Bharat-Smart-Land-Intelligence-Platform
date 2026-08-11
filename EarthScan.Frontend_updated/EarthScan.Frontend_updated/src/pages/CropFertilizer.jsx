@@ -180,7 +180,7 @@ export default function CropFertilizer() {
         formData.append('lang', i18n.language);
 
         try {
-            const res = await axios.post(`${API_BASE_URL}/api/disease/detect`, formData, {
+            const res = await axios.post(`${API_BASE_URL}/api/disease/detect?lang=${i18n.language}`, formData, {
                 headers: { 'Content-Type': 'multipart/form-data' }
             });
             setDiseaseResult(res.data);
